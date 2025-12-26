@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface QuickAddSectionProps {
   onAddIngredient: (ingredient: string) => void;
@@ -50,8 +51,11 @@ const commonIngredients = [
   "turkey",
 ];
 
+const INITIAL_SHOW_COUNT = 8;
+
 const QuickAddSection = ({ onAddIngredient, currentIngredients }: QuickAddSectionProps) => {
   const [search, setSearch] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const availableIngredients = commonIngredients.filter(
     (ing) => !currentIngredients.includes(ing)
@@ -60,6 +64,12 @@ const QuickAddSection = ({ onAddIngredient, currentIngredients }: QuickAddSectio
   const filteredIngredients = availableIngredients.filter((ing) =>
     ing.toLowerCase().includes(search.toLowerCase())
   );
+
+  const displayedIngredients = isExpanded || search
+    ? filteredIngredients
+    : filteredIngredients.slice(0, INITIAL_SHOW_COUNT);
+
+  const hasMore = filteredIngredients.length > INITIAL_SHOW_COUNT && !search;
 
   if (availableIngredients.length === 0) return null;
 
@@ -79,7 +89,7 @@ const QuickAddSection = ({ onAddIngredient, currentIngredients }: QuickAddSectio
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
-        {filteredIngredients.slice(0, 12).map((ingredient) => (
+        {displayedIngredients.map((ingredient) => (
           <button
             key={ingredient}
             onClick={() => onAddIngredient(ingredient)}
@@ -92,6 +102,26 @@ const QuickAddSection = ({ onAddIngredient, currentIngredients }: QuickAddSectio
           <p className="text-sm text-muted-foreground italic">No matching ingredients</p>
         )}
       </div>
+      {hasMore && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp className="h-4 w-4 mr-1" />
+              Show less
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-4 w-4 mr-1" />
+              Show all ({filteredIngredients.length} ingredients)
+            </>
+          )}
+        </Button>
+      )}
     </div>
   );
 };
