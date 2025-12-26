@@ -15,31 +15,31 @@ interface IngredientCategory {
 const ingredientCategories: IngredientCategory[] = [
   {
     name: "Proteins",
-    ingredients: ["chicken", "beef", "pork", "turkey", "salmon", "shrimp", "bacon", "eggs"],
+    ingredients: ["chicken", "beef", "pork", "turkey", "salmon", "shrimp", "bacon", "eggs", "lamb", "duck", "tuna", "cod", "tilapia", "crab", "lobster", "sausage", "ham", "tofu", "tempeh"],
   },
   {
     name: "Vegetables",
-    ingredients: ["tomato", "onion", "garlic", "carrot", "spinach", "broccoli", "bell pepper", "mushroom", "corn", "cucumber", "zucchini"],
+    ingredients: ["tomato", "onion", "garlic", "carrot", "spinach", "broccoli", "bell pepper", "mushroom", "corn", "cucumber", "zucchini", "celery", "cabbage", "kale", "lettuce", "asparagus", "green beans", "peas", "eggplant", "cauliflower", "artichoke", "leek", "radish", "beet", "squash", "sweet potato"],
   },
   {
     name: "Dairy & Cheese",
-    ingredients: ["cheese", "milk", "butter", "cream", "parmesan"],
+    ingredients: ["cheese", "milk", "butter", "cream", "parmesan", "mozzarella", "cheddar", "feta", "goat cheese", "cream cheese", "yogurt", "sour cream", "ricotta", "brie", "swiss cheese"],
   },
   {
     name: "Grains & Starches",
-    ingredients: ["rice", "pasta", "bread", "potato", "flour"],
+    ingredients: ["rice", "pasta", "bread", "potato", "flour", "quinoa", "oats", "couscous", "barley", "cornmeal", "tortilla", "noodles", "breadcrumbs", "polenta", "bulgur"],
   },
   {
     name: "Fruits",
-    ingredients: ["lemon", "lime", "avocado"],
+    ingredients: ["lemon", "lime", "avocado", "apple", "banana", "orange", "strawberry", "blueberry", "mango", "pineapple", "grape", "peach", "pear", "raspberry", "coconut", "watermelon", "cherry"],
   },
   {
     name: "Herbs & Spices",
-    ingredients: ["basil", "cilantro", "ginger"],
+    ingredients: ["basil", "cilantro", "ginger", "oregano", "thyme", "rosemary", "parsley", "mint", "dill", "cumin", "paprika", "turmeric", "cinnamon", "cayenne", "chili flakes", "bay leaf", "sage", "tarragon"],
   },
   {
     name: "Pantry",
-    ingredients: ["olive oil", "soy sauce", "honey", "sugar", "beans"],
+    ingredients: ["olive oil", "soy sauce", "honey", "sugar", "beans", "salt", "pepper", "vinegar", "mustard", "mayo", "ketchup", "hot sauce", "worcestershire", "sesame oil", "coconut oil", "maple syrup", "peanut butter", "almonds", "walnuts", "chickpeas", "lentils"],
   },
 ];
 
