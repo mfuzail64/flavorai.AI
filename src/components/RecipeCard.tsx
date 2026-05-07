@@ -82,7 +82,7 @@ const RecipeCard = ({ recipe, index }: RecipeCardProps) => {
           )}
         </div>
       </div>
-    </article>
+    </Link>
   );
 };
 
