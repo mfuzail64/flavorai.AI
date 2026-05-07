@@ -1,4 +1,5 @@
 import { Clock, Users, ChefHat } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface Recipe {
   id: string;
@@ -24,8 +25,9 @@ const RecipeCard = ({ recipe, index }: RecipeCardProps) => {
   );
 
   return (
-    <article
-      className="group bg-card rounded-xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 animate-slide-up"
+    <Link
+      to={`/recipe/${recipe.id}`}
+      className="group block bg-card rounded-xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 animate-slide-up focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       style={{ animationDelay: `${index * 100}ms` }}
     >
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -80,7 +82,7 @@ const RecipeCard = ({ recipe, index }: RecipeCardProps) => {
           )}
         </div>
       </div>
-    </article>
+    </Link>
   );
 };
 
