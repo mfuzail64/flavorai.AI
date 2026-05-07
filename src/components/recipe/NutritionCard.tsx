@@ -48,7 +48,7 @@ const NutritionCard = ({ nutrition }: Props) => {
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">{label}</p>
               <p className="text-sm font-semibold text-foreground">
-                {(nutrition as Record<string, number>)[key]}
+                {(nutrition as unknown as Record<string, number>)[key]}
                 <span className="text-xs text-muted-foreground ml-0.5">{unit}</span>
               </p>
             </div>
