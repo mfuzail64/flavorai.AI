@@ -1,73 +1,49 @@
 
-# FlavorAI — Rebrand + Recipe Detail Page
+# FlavorAI Authentication System
 
-## 1. Rebrand to FlavorAI
-- Update `Header.tsx`: name → **FlavorAI** (`Flavor` + accent `AI`), swap `ChefHat` for a new custom logo.
-- Generate a premium logo (transparent PNG, warm orange→amber gradient flame/leaf mark) → `src/assets/flavorai-logo.png`.
-- Update `index.html` `<title>`, meta description, and favicon to FlavorAI.
-- Update README headline.
+Note: project is Vite + React Router (not Next.js), so we use the equivalent patterns: an `AuthProvider` context + a `<ProtectedRoute>` wrapper instead of Next middleware. Backend uses Lovable Cloud (Supabase), already wired in `src/integrations/supabase/client.ts`.
 
-## 2. Backend: recipes in Lovable Cloud
-Create a `recipes` table:
+## 1. Backend (Lovable Cloud)
 
-| field | type |
-|---|---|
-| id | uuid pk |
-| slug | text unique (from TheMealDB id) |
-| title, description, image | text |
-| cuisine, category, difficulty | text |
-| prep_time, cook_time | int (minutes) |
-| servings | int |
-| ingredients | jsonb `[{name, amount}]` |
-| instructions | jsonb `string[]` |
-| nutrition | jsonb `{calories, protein, carbs, fat, fiber, sugar, sodium}` (nullable) |
-| tags | text[] |
-| created_at | timestamptz |
+**Auth config**
+- Enable email auth with auto-confirm (per your choice — easy to flip later).
+- Enable Google sign-in via Lovable's managed Google OAuth (no keys needed).
 
-- RLS: public read, no public write (admin-only via service role).
-- Edge function `import-recipes`: pulls every meal from TheMealDB (categories → meals → lookup), normalizes ingredients/instructions, estimates nutrition with Lovable AI (`google/gemini-2.5-flash`) in batches, upserts by `slug`. Idempotent. One-shot trigger from a small admin button (or curl).
-- Edge function `enrich-nutrition`: on-demand fallback that fills `nutrition` for a single recipe if null when the detail page opens, then caches it back to the row.
+**`profiles` table**
+- Fields: `id` (uuid PK), `user_id` (uuid, FK→auth.users, unique, on delete cascade), `name`, `email`, `avatar_url`, `created_at`, `updated_at`.
+- RLS enabled:
+  - Anyone authenticated can read profiles (so we can show names later).
+  - Users can insert/update only their own row.
+- Trigger `handle_new_user()` on `auth.users` insert → auto-creates a profile row populated from `raw_user_meta_data` (name, avatar_url) and email.
+- `update_updated_at_column` trigger for `updated_at`.
 
-## 3. Routing & data flow
-Project is **React + Vite + React Router** (not Next.js). Dynamic route:
-- `App.tsx`: add `<Route path="/recipe/:id" element={<RecipeDetail />} />`.
-- `RecipeCard` becomes a `<Link to={'/recipe/${recipe.id}'}>`.
-- `Index.tsx`: switch from local `src/data/recipes.ts` to Supabase query (`useQuery`) for the matching grid; keep ingredient-match scoring client-side.
+## 2. Frontend
 
-## 4. Recipe detail page (`/recipe/:id`)
-File: `src/pages/RecipeDetail.tsx`. Fetched via `useQuery` → `supabase.from('recipes').select('*').eq('id', id).maybeSingle()`. Skeleton while loading; "Recipe not found" empty state; graceful image fallback.
+**New files**
+- `src/contexts/AuthProvider.tsx` — context exposing `{ user, session, profile, loading, signOut }`. Sets up `onAuthStateChange` first, then `getSession()` (avoids deadlocks). Fetches profile via deferred `setTimeout(0)` inside the listener.
+- `src/components/auth/ProtectedRoute.tsx` — redirects to `/auth` if no session; shows spinner while loading.
+- `src/components/auth/GoogleButton.tsx` — branded Google button using `lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })`.
+- `src/components/auth/ProfileMenu.tsx` — avatar dropdown (shadcn `DropdownMenu` + `Avatar`) with name, email, "Sign out".
+- `src/pages/Auth.tsx` — single page with Login / Sign up tabs. Glassmorphism card on a warm gradient background, framer-motion fade/scale, Outfit type. Email + password fields, Google button, error toasts via sonner.
+- `src/pages/AIGenerator.tsx` — placeholder protected page ("AI Recipe Generator — coming soon") so the protected route is real.
 
-Layout (mobile-first, 2-col on `lg`):
-- Sticky top bar: back button, title, share + favorite icons (glassmorphism, blurred bg).
-- Hero: large 16/10 HD image with gradient overlay + animated fade-in (Framer Motion).
-- Header block: title, description, chips for cuisine/category/difficulty.
-- Stat row: prep time, cook time, servings, total time (icon tiles).
-- Tags row.
-- Left col: `IngredientList` (checkable items) + `InstructionSteps` (numbered, large readable cards).
-- Right col (sticky on `lg`): `NutritionCard` (Calories headline + grid of Protein/Carbs/Fat/Fiber/Sugar/Sodium with subtle gradient bars) + action buttons: **Favorite**, **Share** (Web Share API + clipboard fallback), **Save Recipe**.
+**Edits**
+- `src/App.tsx` — wrap `<BrowserRouter>` contents with `<AuthProvider>`. Add routes: `/auth` (public), `/ai-generator` (wrapped in `<ProtectedRoute>`). Keep `/` and `/recipe/:id` public.
+- `src/components/Header.tsx` — add nav link "AI Generator". Right side: if no user → "Log in" + "Sign up" buttons (link to `/auth`). If user → `<ProfileMenu />`.
+- Configure social auth (`supabase--configure_social_auth` with `providers: ["google"]`) — generates the `lovable` SDK module.
 
-Components (new):
-- `src/components/recipe/NutritionCard.tsx`
-- `src/components/recipe/IngredientList.tsx`
-- `src/components/recipe/InstructionSteps.tsx`
-- `src/components/recipe/RecipeDetailSkeleton.tsx`
+## 3. UX details
+- Toast on success ("Welcome back", "Account created") and on errors.
+- Session persists automatically (already configured in `client.ts`).
+- After successful login/signup, redirect to the page the user came from (or `/`).
+- Spinner state on submit buttons.
+- Mobile: full-width inputs, stacked layout, the auth card is `max-w-md`.
 
-## 5. UI / design system
-- Use existing semantic tokens (warm orange/amber, cream, fresh green) from `index.css`; add `--gradient-hero-warm`, `--shadow-glass`, `--glass-bg` tokens for glassmorphism.
-- Framer Motion for hero fade/scale and staggered ingredient/step reveal (add `framer-motion` dep).
-- Dark mode: ensure all new tokens have dark counterparts.
-- Lazy-load images with `loading="lazy"` + `decoding="async"`; `onError` swap to placeholder.
+## 4. Out of scope (call out)
+- Password reset page — can add next if you want.
+- Per-user favorites/saved recipes persistence — schema not added yet; tell me when to wire it.
 
-## 6. Out of scope (this plan)
-- Persisted favorites/saved recipes per user (needs auth wiring; the buttons will work optimistically with `localStorage` for now and a TODO to migrate to a `favorites` table once sign-in is hooked up — sign-in/up page from earlier message is still pending).
-- Swipe gestures (can add later with `framer-motion` drag if you want).
-
-## Order of execution
-1. Rebrand (Header + logo + index.html).
-2. Migration: create `recipes` table + RLS.
-3. Edge functions: `import-recipes`, `enrich-nutrition`. Trigger import.
-4. Wire `Index.tsx` to Supabase; make cards link to `/recipe/:id`.
-5. Build `RecipeDetail` page + sub-components with Framer Motion + skeletons.
-6. Verify: console, network, and a screenshot of `/recipe/:id` for QA.
-
-Confirm to proceed and I'll execute.
+## Technical notes
+- Use `supabase.auth.signInWithPassword` and `supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } })`.
+- Google via `lovable.auth.signInWithOAuth` (managed OAuth — no client keys required).
+- Profile auto-creation handled in DB trigger (not client) so it works for both email and OAuth signups.
