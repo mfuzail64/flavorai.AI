@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import type { RecipeNutrition } from "@/data/recipeDetails";
+import type { RecipeNutrition } from "@/types/recipe";
 import { Flame, Beef, Wheat, Droplet, Leaf, Candy, Zap } from "lucide-react";
 
 interface Props {
