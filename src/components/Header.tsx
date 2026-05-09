@@ -28,6 +28,9 @@ const Header = () => {
           <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
             Home
           </Link>
+          <Link to="/explore" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+            Explore
+          </Link>
           <Link to="/ai-generator" className="text-muted-foreground hover:text-foreground transition-colors font-medium inline-flex items-center gap-1">
             <Sparkles className="h-4 w-4" />
             AI Generator

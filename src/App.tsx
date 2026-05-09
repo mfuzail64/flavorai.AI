@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import RecipeDetail from "./pages/RecipeDetail";
 import Auth from "./pages/Auth";
 import AIGenerator from "./pages/AIGenerator";
+import Explore from "./pages/Explore";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/recipe/:id" element={<RecipeDetail />} />
+            <Route path="/explore" element={<Explore />} />
             <Route path="/auth" element={<Auth />} />
             <Route
               path="/ai-generator"
