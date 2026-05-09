@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import type { RecipeIngredient } from "@/types/recipe";
 
 interface Props {
-  ingredients: string[];
+  ingredients: RecipeIngredient[];
 }
+
+const formatQty = (i: RecipeIngredient) =>
+  [i.quantity, i.unit].filter(Boolean).join(" ").trim();
 
 const IngredientList = ({ ingredients }: Props) => {
   const [checked, setChecked] = useState<Set<number>>(new Set());
@@ -12,8 +16,7 @@ const IngredientList = ({ ingredients }: Props) => {
   const toggle = (i: number) => {
     setChecked((prev) => {
       const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
+      next.has(i) ? next.delete(i) : next.add(i);
       return next;
     });
   };
@@ -24,12 +27,13 @@ const IngredientList = ({ ingredients }: Props) => {
       <ul className="space-y-2">
         {ingredients.map((ing, i) => {
           const isChecked = checked.has(i);
+          const qty = formatQty(ing);
           return (
             <motion.li
-              key={`${ing}-${i}`}
+              key={`${ing.name}-${i}`}
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.04 }}
+              transition={{ delay: i * 0.03 }}
             >
               <button
                 type="button"
@@ -43,12 +47,13 @@ const IngredientList = ({ ingredients }: Props) => {
                 >
                   {isChecked && <Check className="w-3 h-3 text-primary-foreground" />}
                 </span>
-                <span
-                  className={`capitalize font-medium ${
-                    isChecked ? "line-through text-muted-foreground" : "text-foreground"
-                  }`}
-                >
-                  {ing}
+                <span className="flex-1">
+                  <span className={`capitalize font-medium ${isChecked ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                    {ing.name}
+                  </span>
+                  {qty && (
+                    <span className="ml-2 text-sm text-muted-foreground">{qty}</span>
+                  )}
                 </span>
               </button>
             </motion.li>
