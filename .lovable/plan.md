@@ -1,49 +1,100 @@
+# FlavorAI Production Upgrade
 
-# FlavorAI Authentication System
+A pragmatic note up-front: a static "10,000 recipes" seed is not realistic to hand-curate, and pre-generating 10k AI recipes + 10k AI images would be slow and expensive. Instead, we'll build an **infinite-recipe engine**: the database starts with a curated seed and grows automatically as users search. Every result is real, structured, validated, cached, and instantly reusable for everyone.
 
-Note: project is Vite + React Router (not Next.js), so we use the equivalent patterns: an `AuthProvider` context + a `<ProtectedRoute>` wrapper instead of Next middleware. Backend uses Lovable Cloud (Supabase), already wired in `src/integrations/supabase/client.ts`.
+## Architecture
 
-## 1. Backend (Lovable Cloud)
+```text
+User searches "chicken, rice"
+        │
+        ▼
+[ Supabase: search recipes table ] ──► hits ──► return cached recipes
+        │
+        ▼ misses / not enough
+[ Edge function: generate-recipes ]
+   ├─ Lovable AI (gemini-3-flash-preview) → 6 structured recipes (tool calling)
+   ├─ Validate + dedupe (slug hash)
+   ├─ Insert into recipes table
+   └─ Kick off generate-recipe-image edge fn (async, per recipe)
+        │
+        ▼
+[ Supabase Realtime / refetch ] → cards stream in
+```
 
-**Auth config**
-- Enable email auth with auto-confirm (per your choice — easy to flip later).
-- Enable Google sign-in via Lovable's managed Google OAuth (no keys needed).
+Result: feels infinite, costs scale with usage, every recipe is high quality.
 
-**`profiles` table**
-- Fields: `id` (uuid PK), `user_id` (uuid, FK→auth.users, unique, on delete cascade), `name`, `email`, `avatar_url`, `created_at`, `updated_at`.
-- RLS enabled:
-  - Anyone authenticated can read profiles (so we can show names later).
-  - Users can insert/update only their own row.
-- Trigger `handle_new_user()` on `auth.users` insert → auto-creates a profile row populated from `raw_user_meta_data` (name, avatar_url) and email.
-- `update_updated_at_column` trigger for `updated_at`.
+## Database (new schema)
 
-## 2. Frontend
+New tables (migration):
 
-**New files**
-- `src/contexts/AuthProvider.tsx` — context exposing `{ user, session, profile, loading, signOut }`. Sets up `onAuthStateChange` first, then `getSession()` (avoids deadlocks). Fetches profile via deferred `setTimeout(0)` inside the listener.
-- `src/components/auth/ProtectedRoute.tsx` — redirects to `/auth` if no session; shows spinner while loading.
-- `src/components/auth/GoogleButton.tsx` — branded Google button using `lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })`.
-- `src/components/auth/ProfileMenu.tsx` — avatar dropdown (shadcn `DropdownMenu` + `Avatar`) with name, email, "Sign out".
-- `src/pages/Auth.tsx` — single page with Login / Sign up tabs. Glassmorphism card on a warm gradient background, framer-motion fade/scale, Outfit type. Email + password fields, Google button, error toasts via sonner.
-- `src/pages/AIGenerator.tsx` — placeholder protected page ("AI Recipe Generator — coming soon") so the protected route is real.
+- `recipes` — id, slug (unique), title, description, cuisine, category, difficulty, prep_time, cook_time, total_time, servings, image_url, tags[], ingredients (jsonb: `[{name, quantity, unit}]`), instructions (jsonb: `string[]`), nutrition (jsonb), source ('seed' | 'ai'), created_by (nullable), created_at, search_text (generated tsvector)
+- `recipe_ingredients_index` — recipe_id, ingredient (lowercased, normalized) — for fast ingredient matching
+- `user_favorites` — user_id, recipe_id, created_at
+- `recipe_views` — recipe_id, user_id, viewed_at (for "trending" + "recommended")
 
-**Edits**
-- `src/App.tsx` — wrap `<BrowserRouter>` contents with `<AuthProvider>`. Add routes: `/auth` (public), `/ai-generator` (wrapped in `<ProtectedRoute>`). Keep `/` and `/recipe/:id` public.
-- `src/components/Header.tsx` — add nav link "AI Generator". Right side: if no user → "Log in" + "Sign up" buttons (link to `/auth`). If user → `<ProfileMenu />`.
-- Configure social auth (`supabase--configure_social_auth` with `providers: ["google"]`) — generates the `lovable` SDK module.
+Indexes: GIN on `search_text`, GIN on `tags`, btree on `cuisine`, `category`, `total_time`, `(nutrition->>'calories')::int`, unique on `slug`, composite on `recipe_ingredients_index(ingredient, recipe_id)`.
 
-## 3. UX details
-- Toast on success ("Welcome back", "Account created") and on errors.
-- Session persists automatically (already configured in `client.ts`).
-- After successful login/signup, redirect to the page the user came from (or `/`).
-- Spinner state on submit buttons.
-- Mobile: full-width inputs, stacked layout, the auth card is `max-w-md`.
+RLS:
+- `recipes`: public read, insert/update only via service role (edge functions).
+- `user_favorites`, `recipe_views`: per-user CRUD, `auth.uid() = user_id`.
 
-## 4. Out of scope (call out)
-- Password reset page — can add next if you want.
-- Per-user favorites/saved recipes persistence — schema not added yet; tell me when to wire it.
+## Edge Functions
 
-## Technical notes
-- Use `supabase.auth.signInWithPassword` and `supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } })`.
-- Google via `lovable.auth.signInWithOAuth` (managed OAuth — no client keys required).
-- Profile auto-creation handled in DB trigger (not client) so it works for both email and OAuth signups.
+1. **`generate-recipes`** — input `{ ingredients?, cuisine?, category?, diet?, maxTime?, query?, count? }`. Calls Lovable AI with strict tool-calling schema, validates with Zod, dedupes by slug, inserts rows, fires image generation per recipe (background). Returns inserted recipes immediately (with placeholder image URL).
+2. **`generate-recipe-image`** — input `{ recipe_id }`. Calls `google/gemini-2.5-flash-image` with restaurant-style food-photography prompt, uploads PNG to `recipe-images` storage bucket, updates `recipes.image_url`.
+3. **`search-recipes`** — input `{ query?, ingredients?, cuisine?, diet?, maxCalories?, maxTime? }`. Hybrid search: full-text + ingredient match + filters, ranks by match %, falls back to `generate-recipes` when results < threshold.
+4. **`recommend-recipes`** — uses recent `recipe_views` and `user_favorites` to return similar/recommended recipes.
+
+All gateway errors (429, 402) surfaced to the client as toasts.
+
+## Storage
+- `recipe-images` bucket (public read), folder per recipe id, RLS allowing only service-role writes.
+
+## Frontend
+
+### Data layer
+- `src/hooks/useRecipes.ts` — react-query wrapper around `search-recipes`.
+- `src/hooks/useRecipeDetail.ts` — fetches a single recipe by slug from Supabase.
+- `src/hooks/useFavorites.ts` — toggle/list favorites.
+- Replace `src/data/recipes.ts` and `src/data/recipeDetails.ts` with thin types only; old hard-coded data is removed.
+
+### Pages
+- `Index` — hero, ingredient input, filter bar (cuisine, diet, max time, max calories), "Trending" + "Recommended for you" rails, infinite-scroll grid. Skeleton loaders + lazy images.
+- `RecipeDetail` — sticky nutrition panel on desktop, swipeable hero on mobile, ingredient checkboxes, step tracker, similar-recipes carousel.
+- `Explore` (new) — category tiles for every cuisine listed (Indian, Italian, Chinese, Japanese, Korean, Thai, Mexican, American, Arabic, Turkish, Mediterranean, French, Spanish, African, Indonesian) and tag-based collections (Trending, Viral 2026, Student-friendly, Budget, High-protein, Keto, Vegan, Vegetarian, Quick <15m, Desserts, Drinks, Street food).
+
+### Components
+- `RecipeCard` — refined card, lazy `<img loading="lazy">`, blurred placeholder until image arrives, match % badge, time/cal/diet chips.
+- `FilterBar`, `CuisineChips`, `TrendingRail`, `SimilarRecipes`, `FavoriteButton`, `NutritionStickyPanel`.
+
+### UI polish
+- Apple-grade typography (existing Outfit), generous whitespace, consistent radii, soft shadows, smooth `framer-motion` transitions, perfected dark mode tokens in `index.css`.
+
+## Search & filtering
+- Ingredient match: normalize (lowercase, singularize basic plurals) → `recipe_ingredients_index` join → rank by `matched / total`.
+- Full-text: tsvector on title + description + tags + ingredients.
+- Filter chips compose into a single Supabase query.
+- If <8 results, transparently call `generate-recipes` to top up.
+
+## Performance
+- React Query caching (5-min stale).
+- Image lazy-load + width/height attrs to prevent CLS.
+- Skeletons for cards and detail page.
+- Edge functions stream multiple recipes in one AI call (one round trip per search).
+- Background image generation so cards render before the photo lands; image swaps in via Supabase Realtime subscription on the row.
+
+## What's explicitly out of scope this round
+- Meal planner, shopping list, ratings/comments, recipe authoring UI, push notifications. These can come later.
+
+## Risks / cost notes
+- Each new search triggers 1 AI text call + N image calls (only on cache miss). After a few weeks of use the DB will hold thousands of real recipes and most searches will be cache hits.
+- Image generation latency (~3-6s per image) is hidden by background generation + skeleton placeholders.
+- 429/402 errors from the AI gateway are surfaced as toasts with clear next steps.
+
+## Build order
+1. Migration: tables, indexes, RLS, storage bucket.
+2. Edge functions: `generate-recipes`, `generate-recipe-image`, `search-recipes`, `recommend-recipes`.
+3. Seed: ~60 hand-picked diverse recipes (one AI batch run during setup) so the app isn't empty on first load.
+4. Frontend hooks + new `Explore` page + refactored `Index` and `RecipeDetail`.
+5. Favorites, trending rail, recommendations.
+6. UI polish pass + dark mode QA.
