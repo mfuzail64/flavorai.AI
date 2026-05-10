@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { Loader2 } from "lucide-react";
 import logo from "@/assets/flavorai-logo.png";
 
 const Auth = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
@@ -33,8 +35,8 @@ const Auth = () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) return toast.error("Login failed", { description: error.message });
-    toast.success("Welcome back!");
+    if (error) return toast.error(t("auth.loginFailed"), { description: error.message });
+    toast.success(t("auth.welcomeToast"));
     navigate(from, { replace: true });
   };
 
@@ -50,8 +52,8 @@ const Auth = () => {
       },
     });
     setLoading(false);
-    if (error) return toast.error("Sign up failed", { description: error.message });
-    toast.success("Account created!");
+    if (error) return toast.error(t("auth.signupFailed"), { description: error.message });
+    toast.success(t("auth.accountCreatedToast"));
     navigate(from, { replace: true });
   };
 
@@ -78,46 +80,46 @@ const Auth = () => {
 
           <Tabs value={mode} onValueChange={(v) => setMode(v as "login" | "signup")}>
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Log in</TabsTrigger>
-              <TabsTrigger value="signup">Sign up</TabsTrigger>
+              <TabsTrigger value="login">{t("nav.login")}</TabsTrigger>
+              <TabsTrigger value="signup">{t("nav.signup")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
-              <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
-              <p className="text-sm text-muted-foreground mb-6">Sign in to continue cooking.</p>
+              <h1 className="text-2xl font-bold mb-1">{t("auth.welcomeBack")}</h1>
+              <p className="text-sm text-muted-foreground mb-6">{t("auth.signInDesc")}</p>
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input id="login-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                  <Label htmlFor="login-email">{t("auth.email")}</Label>
+                  <Input id="login-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input id="login-password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                  <Label htmlFor="login-password">{t("auth.password")}</Label>
+                  <Input id="login-password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("auth.passwordPlaceholder")} />
                 </div>
                 <Button type="submit" className="w-full h-11 rounded-xl" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Log in"}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("auth.login")}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="signup">
-              <h1 className="text-2xl font-bold mb-1">Create your account</h1>
-              <p className="text-sm text-muted-foreground mb-6">Join FlavorAI and start exploring recipes.</p>
+              <h1 className="text-2xl font-bold mb-1">{t("auth.createAccount")}</h1>
+              <p className="text-sm text-muted-foreground mb-6">{t("auth.signupDesc")}</p>
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Name</Label>
-                  <Input id="signup-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
+                  <Label htmlFor="signup-name">{t("auth.name")}</Label>
+                  <Input id="signup-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("auth.namePlaceholder")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input id="signup-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                  <Label htmlFor="signup-email">{t("auth.email")}</Label>
+                  <Input id="signup-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input id="signup-password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" />
+                  <Label htmlFor="signup-password">{t("auth.password")}</Label>
+                  <Input id="signup-password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("auth.passwordHint")} />
                 </div>
                 <Button type="submit" className="w-full h-11 rounded-xl" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("auth.createAccountBtn")}
                 </Button>
               </form>
             </TabsContent>
@@ -128,14 +130,14 @@ const Auth = () => {
               <span className="w-full border-t border-border/60" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card/0 px-2 text-muted-foreground">or</span>
+              <span className="bg-card/0 px-2 text-muted-foreground">{t("common.or")}</span>
             </div>
           </div>
 
           <GoogleButton />
 
           <p className="text-center text-xs text-muted-foreground mt-6">
-            By continuing you agree to our Terms & Privacy Policy.
+            {t("auth.terms")}
           </p>
         </div>
       </motion.div>
