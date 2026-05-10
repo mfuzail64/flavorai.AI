@@ -1,10 +1,12 @@
 import Header from "@/components/Header";
 import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthProvider";
 
 const AIGenerator = () => {
   const { profile, user } = useAuth();
+  const { t } = useTranslation();
   const name = profile?.name || user?.email?.split("@")[0] || "chef";
 
   return (
@@ -20,11 +22,10 @@ const AIGenerator = () => {
             <Sparkles className="h-8 w-8" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight mb-3">
-            Hi {name}, your AI Generator is ready
+            {t("ai.hi", { name })}
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Generate brand-new recipes from any ingredients, cuisines, or moods.
-            This protected workspace will host the AI generator soon.
+            {t("ai.subtitle")}
           </p>
         </motion.div>
       </main>

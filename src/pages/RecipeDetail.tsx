@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Clock, Users, ChefHat, Heart, Share2, Timer } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import NutritionCard from "@/components/recipe/NutritionCard";
 import IngredientList from "@/components/recipe/IngredientList";
@@ -18,6 +19,7 @@ import { FALLBACK_IMG } from "@/types/recipe";
 const RecipeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: recipe, isLoading } = useRecipeDetail(id);
   const { data: similar } = useSimilar(recipe?.id);
   const { isFavorite, toggle } = useFavorites();
@@ -29,12 +31,12 @@ const RecipeDetailPage = () => {
 
   const handleShare = async () => {
     const url = window.location.href;
-    const title = recipe?.title ?? "Check out this recipe on FlavorAI";
+    const title = recipe?.title ?? "FlavorAI";
     if (navigator.share) {
       try { await navigator.share({ title, url }); return; } catch { /* cancelled */ }
     }
-    try { await navigator.clipboard.writeText(url); toast("Link copied"); }
-    catch { toast("Could not share"); }
+    try { await navigator.clipboard.writeText(url); toast(t("recipe.linkCopied")); }
+    catch { toast(t("recipe.couldNotShare")); }
   };
 
   if (isLoading) return (<><Header /><RecipeDetailSkeleton /></>);
@@ -44,9 +46,9 @@ const RecipeDetailPage = () => {
       <>
         <Header />
         <div className="max-w-2xl mx-auto px-6 py-24 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-3">Recipe not found</h1>
-          <p className="text-muted-foreground mb-8">We couldn't find that recipe.</p>
-          <Button onClick={() => navigate("/")}>Back to FlavorAI</Button>
+          <h1 className="text-3xl font-bold text-foreground mb-3">{t("recipe.notFound")}</h1>
+          <p className="text-muted-foreground mb-8">{t("recipe.notFoundDesc")}</p>
+          <Button onClick={() => navigate("/")}>{t("recipe.backToHome")}</Button>
         </div>
       </>
     );
@@ -62,16 +64,16 @@ const RecipeDetailPage = () => {
       <div className="sticky top-[68px] z-40 bg-card/70 backdrop-blur-xl border-b border-border">
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-12 flex items-center justify-between gap-3">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Back
+            <ArrowLeft className="w-4 h-4" /> {t("common.back")}
           </Link>
           <p className="hidden sm:block flex-1 text-center font-semibold truncate text-foreground">
             {recipe.title}
           </p>
           <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" onClick={() => toggle.mutate(recipe.id)} aria-label="Favorite">
+            <Button size="icon" variant="ghost" onClick={() => toggle.mutate(recipe.id)} aria-label={t("recipe.addToFavorites")}>
               <Heart className={`w-5 h-5 transition-colors ${fav ? "fill-primary text-primary" : "text-foreground"}`} />
             </Button>
-            <Button size="icon" variant="ghost" onClick={handleShare} aria-label="Share">
+            <Button size="icon" variant="ghost" onClick={handleShare} aria-label={t("common.share")}>
               <Share2 className="w-5 h-5" />
             </Button>
           </div>
@@ -89,7 +91,7 @@ const RecipeDetailPage = () => {
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-accent/40 to-muted">
               <div className="flex flex-col items-center gap-3 text-muted-foreground">
                 <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-                <span className="text-sm font-medium">Plating up your dish…</span>
+                <span className="text-sm font-medium">{t("recipe.plating")}</span>
               </div>
             </div>
           ) : (
@@ -117,10 +119,10 @@ const RecipeDetailPage = () => {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           {[
-            { label: "Prep", value: `${recipe.prep_time} min`, icon: Timer },
-            { label: "Cook", value: `${recipe.cook_time} min`, icon: Clock },
-            { label: "Total", value: `${recipe.total_time} min`, icon: Clock },
-            { label: "Servings", value: `${recipe.servings}`, icon: Users },
+            { label: t("recipe.prep"), value: `${recipe.prep_time} ${t("recipe.minutes")}`, icon: Timer },
+            { label: t("recipe.cook"), value: `${recipe.cook_time} ${t("recipe.minutes")}`, icon: Clock },
+            { label: t("recipe.total"), value: `${recipe.total_time} ${t("recipe.minutes")}`, icon: Clock },
+            { label: t("recipe.servings"), value: `${recipe.servings}`, icon: Users },
           ].map(({ label, value, icon: Icon }) => (
             <div key={label} className="rounded-xl bg-card border border-border p-3 flex items-center gap-3">
               <div className="p-2 rounded-lg bg-accent/60"><Icon className="w-4 h-4 text-primary" /></div>
@@ -134,8 +136,8 @@ const RecipeDetailPage = () => {
 
         {recipe.tags?.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-10">
-            {recipe.tags.map((t) => (
-              <span key={t} className="px-3 py-1 rounded-full bg-secondary/15 text-secondary text-xs font-medium capitalize">#{t}</span>
+            {recipe.tags.map((tg) => (
+              <span key={tg} className="px-3 py-1 rounded-full bg-secondary/15 text-secondary text-xs font-medium capitalize">#{tg}</span>
             ))}
           </div>
         )}
@@ -156,11 +158,11 @@ const RecipeDetailPage = () => {
                 className="w-full"
               >
                 <Heart className={fav ? "fill-current" : ""} />
-                {fav ? "Favorited" : "Add to Favorites"}
+                {fav ? t("recipe.favorited") : t("recipe.addToFavorites")}
               </Button>
               <div className="rounded-xl border border-border bg-card/60 p-4 flex items-center gap-3">
                 <ChefHat className="w-5 h-5 text-primary" />
-                <p className="text-sm text-muted-foreground">Cook with confidence — adjust seasonings to taste.</p>
+                <p className="text-sm text-muted-foreground">{t("recipe.cookHint")}</p>
               </div>
             </div>
           </aside>
@@ -168,7 +170,7 @@ const RecipeDetailPage = () => {
 
         {(similar?.length ?? 0) > 0 && (
           <section className="mt-16">
-            <h2 className="text-2xl font-bold text-foreground mb-6">You might also like</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6">{t("recipe.youMightAlsoLike")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {similar!.slice(0, 4).map((r, i) => (
                 <RecipeCard key={r.id} recipe={r} index={i} />

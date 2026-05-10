@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   instructions: string[];
 }
 
 const InstructionSteps = ({ instructions }: Props) => {
+  const { t } = useTranslation();
   return (
     <section>
-      <h2 className="text-2xl font-bold text-foreground mb-4">Instructions</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-4">{t("recipe.instructions")}</h2>
       <ol className="space-y-4">
         {instructions.map((step, i) => (
           <motion.li
