@@ -1,100 +1,92 @@
-# FlavorAI Production Upgrade
+# Multilingual Onboarding & i18n System
 
-A pragmatic note up-front: a static "10,000 recipes" seed is not realistic to hand-curate, and pre-generating 10k AI recipes + 10k AI images would be slow and expensive. Instead, we'll build an **infinite-recipe engine**: the database starts with a curated seed and grows automatically as users search. Every result is real, structured, validated, cached, and instantly reusable for everyone.
+Note: project is Vite/React Router (not Next.js) — implementation will follow the actual stack.
 
-## Architecture
+## 1. Database (migration)
+
+Add to `profiles` table:
+- `preferred_language text` (nullable — `null` = not yet chosen, triggers onboarding)
+- `country text` (nullable)
+- `updated_at` already exists
+
+Update `handle_new_user()` trigger to leave `preferred_language` null on signup so the language gate fires once.
+
+## 2. i18n stack
+
+- Install `i18next`, `react-i18next`, `i18next-browser-languagedetector`.
+- `src/i18n/index.ts` — initialize with all 10 namespaces, fallback `en`, detect from `navigator.language`.
+- `src/i18n/locales/{en,kn,ur,ta,ml,hi,te,ar,mr,bn}/common.json` — hand-written translation files.
+- Strings grouped: `nav`, `auth`, `home`, `explore`, `recipe`, `filters`, `settings`, `language`, `common`.
+- RTL handling: `ar` and `ur` set `<html dir="rtl">` via effect in `LanguageProvider`.
+
+## 3. Language metadata
+
+`src/i18n/languages.ts` — single source of truth:
 
 ```text
-User searches "chicken, rice"
-        │
-        ▼
-[ Supabase: search recipes table ] ──► hits ──► return cached recipes
-        │
-        ▼ misses / not enough
-[ Edge function: generate-recipes ]
-   ├─ Lovable AI (gemini-3-flash-preview) → 6 structured recipes (tool calling)
-   ├─ Validate + dedupe (slug hash)
-   ├─ Insert into recipes table
-   └─ Kick off generate-recipe-image edge fn (async, per recipe)
-        │
-        ▼
-[ Supabase Realtime / refetch ] → cards stream in
+{ code, nativeName, englishName, flag (emoji), rtl, region[] }
+en 🇬🇧, kn 🇮🇳, ur 🇵🇰, ta 🇮🇳, ml 🇮🇳, hi 🇮🇳, te 🇮🇳, ar 🇸🇦, mr 🇮🇳, bn 🇧🇩
 ```
 
-Result: feels infinite, costs scale with usage, every recipe is high quality.
+Primary 5 (en, kn, ur, ta, ml) marked `featured: true` and rendered first.
 
-## Database (new schema)
+## 4. Auth + onboarding flow
 
-New tables (migration):
+- Extend `AuthProvider` to expose `profile.preferred_language` and a `setLanguage(code)` method that updates the row and `i18n.changeLanguage`.
+- New route `/select-language` (protected).
+- Gate logic in `ProtectedRoute` (and post-login redirect in `Auth.tsx`):
+  - If signed in and `preferred_language` is null → redirect to `/select-language`.
+  - On `/select-language`, if already set → redirect to intended page.
+- After save → redirect to `state.from` or `/`.
 
-- `recipes` — id, slug (unique), title, description, cuisine, category, difficulty, prep_time, cook_time, total_time, servings, image_url, tags[], ingredients (jsonb: `[{name, quantity, unit}]`), instructions (jsonb: `string[]`), nutrition (jsonb), source ('seed' | 'ai'), created_by (nullable), created_at, search_text (generated tsvector)
-- `recipe_ingredients_index` — recipe_id, ingredient (lowercased, normalized) — for fast ingredient matching
-- `user_favorites` — user_id, recipe_id, created_at
-- `recipe_views` — recipe_id, user_id, viewed_at (for "trending" + "recommended")
+```text
+signup/login ──► profile loaded
+                       │
+        preferred_language null? ──yes──► /select-language ──save──► /
+                       │ no
+                       └──► requested route
+```
 
-Indexes: GIN on `search_text`, GIN on `tags`, btree on `cuisine`, `category`, `total_time`, `(nutrition->>'calories')::int`, unique on `slug`, composite on `recipe_ingredients_index(ingredient, recipe_id)`.
+## 5. New pages & components
 
-RLS:
-- `recipes`: public read, insert/update only via service role (edge functions).
-- `user_favorites`, `recipe_views`: per-user CRUD, `auth.uid() = user_id`.
+- `src/pages/SelectLanguage.tsx` — onboarding screen:
+  - FlavorAI logo, "Welcome" + "Choose your language" (shown in 5 primary languages, rotating).
+  - Search input filters by native + english name.
+  - Auto-detected language pre-selected with "Suggested for you" badge (uses `navigator.language` and a small region map: IN-KA→kn, SA/AE→ar, PK→ur, etc.).
+  - Grid of `LanguageCard`s (2 cols mobile, 3 desktop).
+  - Sticky "Continue" button + "Skip (use English)" link.
+- `src/components/language/LanguageCard.tsx` — rounded glass card, flag, native name, english name, animated selected glow ring.
+- `src/components/language/LanguageSelector.tsx` — reusable selector list (used in settings).
+- `src/pages/Settings.tsx` — new `/settings` route with sections; first section is **Language** using `LanguageSelector`. Linked from `ProfileMenu`.
+- `src/hooks/useLanguage.ts` — wraps `useTranslation` + `useAuth`, returns `{ lang, setLang, t, isRTL, languages }`.
 
-## Edge Functions
+## 6. Translate existing UI
 
-1. **`generate-recipes`** — input `{ ingredients?, cuisine?, category?, diet?, maxTime?, query?, count? }`. Calls Lovable AI with strict tool-calling schema, validates with Zod, dedupes by slug, inserts rows, fires image generation per recipe (background). Returns inserted recipes immediately (with placeholder image URL).
-2. **`generate-recipe-image`** — input `{ recipe_id }`. Calls `google/gemini-2.5-flash-image` with restaurant-style food-photography prompt, uploads PNG to `recipe-images` storage bucket, updates `recipes.image_url`.
-3. **`search-recipes`** — input `{ query?, ingredients?, cuisine?, diet?, maxCalories?, maxTime? }`. Hybrid search: full-text + ingredient match + filters, ranks by match %, falls back to `generate-recipes` when results < threshold.
-4. **`recommend-recipes`** — uses recent `recipe_views` and `user_favorites` to return similar/recommended recipes.
+Replace hard-coded strings with `t('...')` in:
+`Header.tsx`, `Auth.tsx`, `Index.tsx`, `Explore.tsx`, `RecipeDetail.tsx`, `AIGenerator.tsx`, `FilterBar.tsx`, `RecipeCard.tsx`, `IngredientList`, `InstructionSteps`, `NutritionCard`, `ProfileMenu.tsx`, `NotFound.tsx`.
 
-All gateway errors (429, 402) surfaced to the client as toasts.
+Recipe data (titles, ingredients, instructions, nutrition) stays in English — only UI chrome is translated.
 
-## Storage
-- `recipe-images` bucket (public read), folder per recipe id, RLS allowing only service-role writes.
+## 7. Design
 
-## Frontend
+- Glassmorphism cards: `bg-card/60 backdrop-blur-xl border border-border/50`.
+- Selected state: gradient ring `ring-2 ring-primary` + soft `shadow-[0_0_30px_hsl(var(--primary)/0.35)]`.
+- Framer-motion stagger entrance on cards.
+- Fully responsive at 393px viewport (current preview), dark mode tested.
+- All colors via existing semantic tokens — no hard-coded hex.
 
-### Data layer
-- `src/hooks/useRecipes.ts` — react-query wrapper around `search-recipes`.
-- `src/hooks/useRecipeDetail.ts` — fetches a single recipe by slug from Supabase.
-- `src/hooks/useFavorites.ts` — toggle/list favorites.
-- Replace `src/data/recipes.ts` and `src/data/recipeDetails.ts` with thin types only; old hard-coded data is removed.
+## 8. Out of scope
 
-### Pages
-- `Index` — hero, ingredient input, filter bar (cuisine, diet, max time, max calories), "Trending" + "Recommended for you" rails, infinite-scroll grid. Skeleton loaders + lazy images.
-- `RecipeDetail` — sticky nutrition panel on desktop, swipeable hero on mobile, ingredient checkboxes, step tracker, similar-recipes carousel.
-- `Explore` (new) — category tiles for every cuisine listed (Indian, Italian, Chinese, Japanese, Korean, Thai, Mexican, American, Arabic, Turkish, Mediterranean, French, Spanish, African, Indonesian) and tag-based collections (Trending, Viral 2026, Student-friendly, Budget, High-protein, Keto, Vegan, Vegetarian, Quick <15m, Desserts, Drinks, Street food).
-
-### Components
-- `RecipeCard` — refined card, lazy `<img loading="lazy">`, blurred placeholder until image arrives, match % badge, time/cal/diet chips.
-- `FilterBar`, `CuisineChips`, `TrendingRail`, `SimilarRecipes`, `FavoriteButton`, `NutritionStickyPanel`.
-
-### UI polish
-- Apple-grade typography (existing Outfit), generous whitespace, consistent radii, soft shadows, smooth `framer-motion` transitions, perfected dark mode tokens in `index.css`.
-
-## Search & filtering
-- Ingredient match: normalize (lowercase, singularize basic plurals) → `recipe_ingredients_index` join → rank by `matched / total`.
-- Full-text: tsvector on title + description + tags + ingredients.
-- Filter chips compose into a single Supabase query.
-- If <8 results, transparently call `generate-recipes` to top up.
-
-## Performance
-- React Query caching (5-min stale).
-- Image lazy-load + width/height attrs to prevent CLS.
-- Skeletons for cards and detail page.
-- Edge functions stream multiple recipes in one AI call (one round trip per search).
-- Background image generation so cards render before the photo lands; image swaps in via Supabase Realtime subscription on the row.
-
-## What's explicitly out of scope this round
-- Meal planner, shopping list, ratings/comments, recipe authoring UI, push notifications. These can come later.
-
-## Risks / cost notes
-- Each new search triggers 1 AI text call + N image calls (only on cache miss). After a few weeks of use the DB will hold thousands of real recipes and most searches will be cache hits.
-- Image generation latency (~3-6s per image) is hidden by background generation + skeleton placeholders.
-- 429/402 errors from the AI gateway are surfaced as toasts with clear next steps.
+- Translating AI-generated recipe content (recipes stay English by your choice).
+- Per-language SEO routes.
+- Crowd translation tooling.
 
 ## Build order
-1. Migration: tables, indexes, RLS, storage bucket.
-2. Edge functions: `generate-recipes`, `generate-recipe-image`, `search-recipes`, `recommend-recipes`.
-3. Seed: ~60 hand-picked diverse recipes (one AI batch run during setup) so the app isn't empty on first load.
-4. Frontend hooks + new `Explore` page + refactored `Index` and `RecipeDetail`.
-5. Favorites, trending rail, recommendations.
-6. UI polish pass + dark mode QA.
+
+1. Migration (add `preferred_language`, `country`).
+2. Install i18n deps + scaffold provider + 10 locale files.
+3. `SelectLanguage` page + `LanguageCard` + auto-detect.
+4. Auth gate redirect logic.
+5. `Settings` page + nav link in `ProfileMenu`.
+6. Replace strings across existing components.
+7. RTL polish + dark mode QA.

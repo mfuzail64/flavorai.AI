@@ -8,20 +8,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthProvider";
-import { LogOut, Sparkles } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, Sparkles, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { getLangMeta } from "@/i18n/languages";
 
 const ProfileMenu = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const name = profile?.name || user?.email?.split("@")[0] || "User";
   const initials = name.slice(0, 2).toUpperCase();
+  const lang = getLangMeta(i18n.language);
 
   const handleLogout = async () => {
     await signOut();
-    toast.success("Signed out");
+    toast.success(t("auth.signedOutToast"));
     navigate("/");
   };
 
@@ -45,12 +49,21 @@ const ProfileMenu = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate("/ai-generator")}>
           <Sparkles className="mr-2 h-4 w-4" />
-          AI Generator
+          {t("nav.aiGenerator")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/settings")}>
+          <SettingsIcon className="mr-2 h-4 w-4" />
+          {t("nav.settings")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/settings")} className="text-muted-foreground">
+          <Globe className="mr-2 h-4 w-4" />
+          <span className="flex-1">{t("nav.language")}</span>
+          <span className="text-xs">{lang.flag} {lang.nativeName}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
           <LogOut className="mr-2 h-4 w-4" />
-          Sign out
+          {t("nav.logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

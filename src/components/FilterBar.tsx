@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const CUISINES = [
   "Indian", "Italian", "Chinese", "Japanese", "Korean", "Thai", "Mexican",
@@ -15,18 +16,6 @@ export const CUISINES = [
 ];
 
 export const DIETS = ["Vegetarian", "Vegan", "Keto", "High-Protein", "Gluten-Free"];
-
-export const TIMES = [
-  { label: "Under 15 min", value: 15 },
-  { label: "Under 30 min", value: 30 },
-  { label: "Under 60 min", value: 60 },
-];
-
-export const CALORIES = [
-  { label: "Under 300", value: 300 },
-  { label: "Under 500", value: 500 },
-  { label: "Under 800", value: 800 },
-];
 
 export interface FilterState {
   cuisine?: string;
@@ -41,7 +30,20 @@ interface Props {
 }
 
 const FilterBar = ({ value, onChange }: Props) => {
+  const { t } = useTranslation();
   const hasAny = value.cuisine || value.diet || value.maxTime || value.maxCalories;
+
+  const TIMES = [
+    { label: t("filter.under15"), value: 15 },
+    { label: t("filter.under30"), value: 30 },
+    { label: t("filter.under60"), value: 60 },
+  ];
+  const CALORIES = [
+    { label: t("filter.under300"), value: 300 },
+    { label: t("filter.under500"), value: 500 },
+    { label: t("filter.under800"), value: 800 },
+  ];
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Select
@@ -49,10 +51,10 @@ const FilterBar = ({ value, onChange }: Props) => {
         onValueChange={(v) => onChange({ ...value, cuisine: v === "_any" ? undefined : v })}
       >
         <SelectTrigger className="w-[150px] h-9 rounded-full">
-          <SelectValue placeholder="Cuisine" />
+          <SelectValue placeholder={t("filter.cuisine")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="_any">Any cuisine</SelectItem>
+          <SelectItem value="_any">{t("filter.anyCuisine")}</SelectItem>
           {CUISINES.map((c) => (
             <SelectItem key={c} value={c}>{c}</SelectItem>
           ))}
@@ -64,10 +66,10 @@ const FilterBar = ({ value, onChange }: Props) => {
         onValueChange={(v) => onChange({ ...value, diet: v === "_any" ? undefined : v })}
       >
         <SelectTrigger className="w-[140px] h-9 rounded-full">
-          <SelectValue placeholder="Diet" />
+          <SelectValue placeholder={t("filter.diet")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="_any">Any diet</SelectItem>
+          <SelectItem value="_any">{t("filter.anyDiet")}</SelectItem>
           {DIETS.map((d) => (
             <SelectItem key={d} value={d}>{d}</SelectItem>
           ))}
@@ -79,12 +81,12 @@ const FilterBar = ({ value, onChange }: Props) => {
         onValueChange={(v) => onChange({ ...value, maxTime: v === "_any" ? undefined : Number(v) })}
       >
         <SelectTrigger className="w-[150px] h-9 rounded-full">
-          <SelectValue placeholder="Time" />
+          <SelectValue placeholder={t("filter.time")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="_any">Any time</SelectItem>
-          {TIMES.map((t) => (
-            <SelectItem key={t.value} value={String(t.value)}>{t.label}</SelectItem>
+          <SelectItem value="_any">{t("filter.anyTime")}</SelectItem>
+          {TIMES.map((tt) => (
+            <SelectItem key={tt.value} value={String(tt.value)}>{tt.label}</SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -94,10 +96,10 @@ const FilterBar = ({ value, onChange }: Props) => {
         onValueChange={(v) => onChange({ ...value, maxCalories: v === "_any" ? undefined : Number(v) })}
       >
         <SelectTrigger className="w-[150px] h-9 rounded-full">
-          <SelectValue placeholder="Calories" />
+          <SelectValue placeholder={t("filter.calories")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="_any">Any calories</SelectItem>
+          <SelectItem value="_any">{t("filter.anyCalories")}</SelectItem>
           {CALORIES.map((c) => (
             <SelectItem key={c.value} value={String(c.value)}>{c.label}</SelectItem>
           ))}
@@ -105,13 +107,8 @@ const FilterBar = ({ value, onChange }: Props) => {
       </Select>
 
       {hasAny && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-9 rounded-full"
-          onClick={() => onChange({})}
-        >
-          <X className="w-4 h-4 mr-1" /> Clear
+        <Button variant="ghost" size="sm" className="h-9 rounded-full" onClick={() => onChange({})}>
+          <X className="w-4 h-4 mr-1" /> {t("filter.clear")}
         </Button>
       )}
     </div>

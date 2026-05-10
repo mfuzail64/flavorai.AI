@@ -5,11 +5,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import LanguageGate from "@/components/auth/LanguageGate";
+import "@/i18n";
 import Index from "./pages/Index";
 import RecipeDetail from "./pages/RecipeDetail";
 import Auth from "./pages/Auth";
 import AIGenerator from "./pages/AIGenerator";
 import Explore from "./pages/Explore";
+import Settings from "./pages/Settings";
+import SelectLanguage from "./pages/SelectLanguage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,15 +26,24 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/recipe/:id" element={<RecipeDetail />} />
-            <Route path="/explore" element={<Explore />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/select-language" element={<SelectLanguage />} />
+            <Route path="/" element={<LanguageGate><Index /></LanguageGate>} />
+            <Route path="/recipe/:id" element={<LanguageGate><RecipeDetail /></LanguageGate>} />
+            <Route path="/explore" element={<LanguageGate><Explore /></LanguageGate>} />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <LanguageGate><Settings /></LanguageGate>
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/ai-generator"
               element={
                 <ProtectedRoute>
-                  <AIGenerator />
+                  <LanguageGate><AIGenerator /></LanguageGate>
                 </ProtectedRoute>
               }
             />

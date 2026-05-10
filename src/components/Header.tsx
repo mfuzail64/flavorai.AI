@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import logo from "@/assets/flavorai-logo.png";
 import { useAuth } from "@/contexts/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Sparkles } from "lucide-react";
 
 const Header = () => {
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <header className="w-full py-4 px-6 bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
@@ -26,14 +28,14 @@ const Header = () => {
 
         <nav className="hidden md:flex items-center gap-6">
           <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
-            Home
+            {t("nav.home")}
           </Link>
           <Link to="/explore" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
-            Explore
+            {t("nav.explore")}
           </Link>
           <Link to="/ai-generator" className="text-muted-foreground hover:text-foreground transition-colors font-medium inline-flex items-center gap-1">
             <Sparkles className="h-4 w-4" />
-            AI Generator
+            {t("nav.aiGenerator")}
           </Link>
         </nav>
 
@@ -43,10 +45,10 @@ const Header = () => {
           ) : (
             <>
               <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-                <Link to="/auth">Log in</Link>
+                <Link to="/auth">{t("nav.login")}</Link>
               </Button>
               <Button asChild size="sm" className="rounded-full shadow-sm hover:shadow-md transition-shadow">
-                <Link to="/auth" state={{ from: "/" }}>Sign up</Link>
+                <Link to="/auth" state={{ from: "/" }}>{t("nav.signup")}</Link>
               </Button>
             </>
           )}

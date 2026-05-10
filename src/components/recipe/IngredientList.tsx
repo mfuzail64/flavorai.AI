@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { RecipeIngredient } from "@/types/recipe";
 
 interface Props {
@@ -11,6 +12,7 @@ const formatQty = (i: RecipeIngredient) =>
   [i.quantity, i.unit].filter(Boolean).join(" ").trim();
 
 const IngredientList = ({ ingredients }: Props) => {
+  const { t } = useTranslation();
   const [checked, setChecked] = useState<Set<number>>(new Set());
 
   const toggle = (i: number) => {
@@ -23,7 +25,7 @@ const IngredientList = ({ ingredients }: Props) => {
 
   return (
     <section>
-      <h2 className="text-2xl font-bold text-foreground mb-4">Ingredients</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-4">{t("recipe.ingredients")}</h2>
       <ul className="space-y-2">
         {ingredients.map((ing, i) => {
           const isChecked = checked.has(i);

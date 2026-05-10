@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { UtensilsCrossed, Sparkles, Flame, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import IngredientInput from "@/components/IngredientInput";
 import IngredientTag from "@/components/IngredientTag";
@@ -12,6 +13,7 @@ import { useRecipeSearch, useTrending } from "@/hooks/useRecipes";
 import { toast } from "sonner";
 
 const Index = () => {
+  const { t } = useTranslation();
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({});
 
@@ -55,13 +57,13 @@ const Index = () => {
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent rounded-full text-accent-foreground text-sm font-medium mb-6 animate-fade-in">
             <Sparkles className="w-4 h-4" />
-            Powered by AI · Infinite recipes
+            {t("home.heroBadge")}
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-            Cook anything from <span className="text-primary">what you have</span>
+            {t("home.heroTitle1")} <span className="text-primary">{t("home.heroTitleAccent")}</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Type your ingredients and we'll generate restaurant-quality recipes — instant, accurate, with full nutrition.
+            {t("home.heroSubtitle")}
           </p>
 
           <div className="flex flex-col items-center gap-5">
@@ -118,10 +120,10 @@ const Index = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-foreground inline-flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" /> Trending now
+              <TrendingUp className="w-5 h-5 text-primary" /> {t("home.trendingNow")}
             </h2>
             <Link to="/explore" className="text-sm text-primary hover:underline">
-              Explore all →
+              {t("home.exploreAll")}
             </Link>
           </div>
 
@@ -130,7 +132,7 @@ const Index = () => {
               {Array.from({ length: 4 }).map((_, i) => <RecipeCardSkeleton key={i} />)}
             </div>
           ) : (trending.data?.length ?? 0) === 0 ? (
-            <p className="text-muted-foreground">No recipes yet — search above to seed the database.</p>
+            <p className="text-muted-foreground">{t("home.noRecipesYet")}</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {trending.data!.slice(0, 8).map((r, i) => (
@@ -143,29 +145,27 @@ const Index = () => {
 
       <footer className="py-8 px-6 border-t border-border mt-6">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground text-sm">
-          FlavorAI · cook anything · powered by AI
+          {t("home.footer")}
         </div>
       </footer>
     </div>
   );
 };
 
-const EmptyHint = () => (
+const EmptyHint = ({ t }: { t: (k: string) => string }) => (
   <div className="text-center py-16">
     <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-6">
       <UtensilsCrossed className="w-10 h-10 text-muted-foreground" />
     </div>
-    <h2 className="text-2xl font-semibold text-foreground mb-2">Add ingredients to start</h2>
-    <p className="text-muted-foreground max-w-md mx-auto">
-      Type ingredients you have at home or pick a filter — FlavorAI will generate the perfect recipe.
-    </p>
+    <h2 className="text-2xl font-semibold text-foreground mb-2">{t("home.addToStart")}</h2>
+    <p className="text-muted-foreground max-w-md mx-auto">{t("home.addToStartDesc")}</p>
   </div>
 );
 
-const NoResults = () => (
+const NoResults = ({ t }: { t: (k: string) => string }) => (
   <div className="text-center py-16">
-    <h2 className="text-2xl font-semibold text-foreground mb-2">No matches</h2>
-    <p className="text-muted-foreground">Try fewer ingredients or different filters.</p>
+    <h2 className="text-2xl font-semibold text-foreground mb-2">{t("home.noMatches")}</h2>
+    <p className="text-muted-foreground">{t("home.noMatchesDesc")}</p>
   </div>
 );
 
