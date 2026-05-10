@@ -8,6 +8,8 @@ interface Profile {
   name: string | null;
   email: string | null;
   avatar_url: string | null;
+  preferred_language: string | null;
+  country: string | null;
 }
 
 interface AuthContextValue {
