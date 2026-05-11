@@ -1,9 +1,8 @@
-import { Clock, Users, Flame, ImageOff } from "lucide-react";
+import { Clock, Users, Flame } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Recipe } from "@/types/recipe";
-import { FALLBACK_IMG } from "@/types/recipe";
-import { useState } from "react";
+import RecipeImage from "@/components/recipe/RecipeImage";
 
 interface Props {
   recipe: Recipe;
