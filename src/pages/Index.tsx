@@ -96,7 +96,7 @@ const Index = () => {
           )}
 
           {!enabled ? (
-            <EmptyHint />
+            <EmptyHint t={t} />
           ) : isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
@@ -104,7 +104,7 @@ const Index = () => {
               ))}
             </div>
           ) : (results?.length ?? 0) === 0 ? (
-            <NoResults />
+            <NoResults t={t} />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {results!.map((r, i) => (

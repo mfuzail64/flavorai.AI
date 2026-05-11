@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Clock, Users, ChefHat, Heart, Share2, Timer } from "lucide-react";
@@ -9,12 +9,12 @@ import NutritionCard from "@/components/recipe/NutritionCard";
 import IngredientList from "@/components/recipe/IngredientList";
 import InstructionSteps from "@/components/recipe/InstructionSteps";
 import RecipeDetailSkeleton from "@/components/recipe/RecipeDetailSkeleton";
+import RecipeImage from "@/components/recipe/RecipeImage";
 import RecipeCard from "@/components/RecipeCard";
 import { Button } from "@/components/ui/button";
 import { useRecipeDetail } from "@/hooks/useRecipeDetail";
 import { useSimilar } from "@/hooks/useRecipes";
 import { useFavorites } from "@/hooks/useFavorites";
-import { FALLBACK_IMG } from "@/types/recipe";
 
 const RecipeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +23,6 @@ const RecipeDetailPage = () => {
   const { data: recipe, isLoading } = useRecipeDetail(id);
   const { data: similar } = useSimilar(recipe?.id);
   const { isFavorite, toggle } = useFavorites();
-  const [imgErr, setImgErr] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -55,8 +54,6 @@ const RecipeDetailPage = () => {
   }
 
   const fav = isFavorite(recipe.id);
-  const showImg = recipe.image_url && recipe.image_status === "ready" && !imgErr;
-  const imgSrc = showImg ? recipe.image_url! : FALLBACK_IMG;
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,33 +82,26 @@ const RecipeDetailPage = () => {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-card-hover mb-6 bg-muted"
+          className="relative rounded-2xl overflow-hidden shadow-card-hover mb-6"
         >
-          {recipe.image_status !== "ready" && !showImg ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-accent/40 to-muted">
-              <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-                <span className="text-sm font-medium">{t("recipe.plating")}</span>
-              </div>
-            </div>
-          ) : (
-            <img
-              src={imgSrc}
-              alt={recipe.title}
-              loading="eager"
-              decoding="async"
-              onError={() => setImgErr(true)}
-              className="w-full h-full object-cover"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/10 to-transparent" />
+          <RecipeImage
+            src={recipe.image_url}
+            alt={recipe.title}
+            category={recipe.category}
+            cuisine={recipe.cuisine}
+            status={recipe.image_status}
+            aspect="wide"
+            priority
+            sizes="(max-width: 1024px) 100vw, 1024px"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/85 via-background/10 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
             <div className="flex flex-wrap gap-2 mb-3">
               <span className="px-3 py-1 rounded-full bg-card/80 backdrop-blur text-xs font-semibold text-foreground">{recipe.cuisine}</span>
               <span className="px-3 py-1 rounded-full bg-card/80 backdrop-blur text-xs font-semibold text-foreground">{recipe.category}</span>
               <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">{recipe.difficulty}</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-foreground drop-shadow-sm">{recipe.title}</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-foreground drop-shadow-sm">{recipe.title}</h1>
           </div>
         </motion.div>
 

@@ -1,9 +1,8 @@
-import { Clock, Users, Flame, ImageOff } from "lucide-react";
+import { Clock, Users, Flame } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Recipe } from "@/types/recipe";
-import { FALLBACK_IMG } from "@/types/recipe";
-import { useState } from "react";
+import RecipeImage from "@/components/recipe/RecipeImage";
 
 interface Props {
   recipe: Recipe;
@@ -11,12 +10,10 @@ interface Props {
 }
 
 const RecipeCard = ({ recipe, index = 0 }: Props) => {
-  const [imgErr, setImgErr] = useState(false);
   const matched = recipe.matched_ingredients?.length ?? 0;
   const missing = recipe.missing_ingredients?.length ?? 0;
   const total = matched + missing;
   const pct = total ? Math.round((matched / total) * 100) : null;
-  const showImg = recipe.image_url && recipe.image_status === "ready" && !imgErr;
   const calories = recipe.nutrition?.calories;
 
   return (
@@ -29,38 +26,23 @@ const RecipeCard = ({ recipe, index = 0 }: Props) => {
         to={`/recipe/${recipe.slug}`}
         className="group block bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring h-full"
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          {showImg ? (
-            <img
-              src={recipe.image_url!}
-              alt={recipe.title}
-              loading="lazy"
-              decoding="async"
-              onError={() => setImgErr(true)}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : recipe.image_status === "failed" || imgErr ? (
-            <img
-              src={FALLBACK_IMG}
-              alt={recipe.title}
-              loading="lazy"
-              className="w-full h-full object-cover opacity-90"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-accent/40 to-muted">
-              <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-                <span className="text-xs font-medium">Plating up…</span>
-              </div>
-            </div>
-          )}
-
+        <div className="relative">
+          <RecipeImage
+            src={recipe.image_url}
+            alt={recipe.title}
+            category={recipe.category}
+            cuisine={recipe.cuisine}
+            status={recipe.image_status}
+            aspect="square"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            imgClassName="group-hover:scale-105"
+          />
           {pct !== null && (
-            <div className="absolute top-3 right-3 bg-card/90 backdrop-blur px-2.5 py-1 rounded-full text-xs font-semibold text-secondary">
+            <div className="absolute top-3 right-3 bg-card/90 backdrop-blur px-2.5 py-1 rounded-full text-xs font-semibold text-secondary z-10">
               {pct}% match
             </div>
           )}
-          <div className="absolute top-3 left-3 bg-primary/90 text-primary-foreground px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide">
+          <div className="absolute top-3 left-3 bg-primary/90 text-primary-foreground px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide z-10">
             {recipe.cuisine}
           </div>
         </div>
