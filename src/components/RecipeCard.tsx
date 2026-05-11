@@ -42,7 +42,7 @@ const RecipeCard = ({ recipe, index = 0 }: Props) => {
               {pct}% match
             </div>
           )}
-          <div className="absolute top-3 left-3 bg-primary/90 text-primary-foreground px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide">
+          <div className="absolute top-3 left-3 bg-primary/90 text-primary-foreground px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide z-10">
             {recipe.cuisine}
           </div>
         </div>
