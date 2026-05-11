@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Clock, Users, ChefHat, Heart, Share2, Timer } from "lucide-react";
@@ -9,12 +9,12 @@ import NutritionCard from "@/components/recipe/NutritionCard";
 import IngredientList from "@/components/recipe/IngredientList";
 import InstructionSteps from "@/components/recipe/InstructionSteps";
 import RecipeDetailSkeleton from "@/components/recipe/RecipeDetailSkeleton";
+import RecipeImage from "@/components/recipe/RecipeImage";
 import RecipeCard from "@/components/RecipeCard";
 import { Button } from "@/components/ui/button";
 import { useRecipeDetail } from "@/hooks/useRecipeDetail";
 import { useSimilar } from "@/hooks/useRecipes";
 import { useFavorites } from "@/hooks/useFavorites";
-import { FALLBACK_IMG } from "@/types/recipe";
 
 const RecipeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +23,6 @@ const RecipeDetailPage = () => {
   const { data: recipe, isLoading } = useRecipeDetail(id);
   const { data: similar } = useSimilar(recipe?.id);
   const { isFavorite, toggle } = useFavorites();
-  const [imgErr, setImgErr] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
