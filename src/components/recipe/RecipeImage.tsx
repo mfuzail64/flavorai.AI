@@ -145,7 +145,7 @@ const RecipeImage = ({
         alt={alt}
         loading={priority ? "eager" : "lazy"}
         decoding="async"
-        fetchPriority={priority ? "high" : "auto"}
+        {...({ fetchpriority: priority ? "high" : "auto" } as Record<string, string>)}
         onLoad={() => setLoaded(true)}
         onError={() => {
           if (!errored) setErrored(true);
