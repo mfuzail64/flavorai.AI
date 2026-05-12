@@ -40,14 +40,37 @@ serve(async (req) => {
     let recipeIds: string[] | null = null;
     const normIngs = (ingredients as string[]).map(normalize).filter(Boolean);
 
+    // Helper: does an indexed ingredient string contain any of the user's tokens?
+    const ingMatches = (indexed: string, token: string) => {
+      const i = indexed.toLowerCase();
+      // word-boundary-ish: token appears as a substring (handles "large egg", "egg yolk", "garlic, minced")
+      return i.includes(token);
+    };
+
     if (normIngs.length) {
+      // Pull every indexed row that ILIKEs ANY of the user tokens in one query
+      const orFilter = normIngs
+        .map((t) => `ingredient.ilike.%${t.replace(/[,()]/g, "")}%`)
+        .join(",");
       const { data: matches } = await supabase
         .from("recipe_ingredients_index")
         .select("recipe_id, ingredient")
-        .in("ingredient", normIngs);
-      const counts = new Map<string, number>();
-      (matches || []).forEach((m: any) => counts.set(m.recipe_id, (counts.get(m.recipe_id) || 0) + 1));
-      recipeIds = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
+        .or(orFilter);
+
+      // Count UNIQUE user-tokens matched per recipe (so "large egg" + "egg yolk" both
+      // matching "egg" count as 1, not 2)
+      const tokensByRecipe = new Map<string, Set<string>>();
+      (matches || []).forEach((m: any) => {
+        for (const tok of normIngs) {
+          if (ingMatches(m.ingredient, tok)) {
+            if (!tokensByRecipe.has(m.recipe_id)) tokensByRecipe.set(m.recipe_id, new Set());
+            tokensByRecipe.get(m.recipe_id)!.add(tok);
+          }
+        }
+      });
+      recipeIds = [...tokensByRecipe.entries()]
+        .sort((a, b) => b[1].size - a[1].size)
+        .map(([id]) => id);
     }
 
     let q = supabase.from("recipes").select("*").limit(limit);
@@ -68,7 +91,7 @@ serve(async (req) => {
 
     let results = recipes || [];
 
-    // Compute match info
+    // Compute match info using the same substring logic
     if (normIngs.length) {
       const ids = results.map((r) => r.id);
       const { data: allIng } = await supabase
@@ -83,13 +106,16 @@ serve(async (req) => {
       results = results
         .map((r) => {
           const all = byRecipe.get(r.id) || [];
-          const matched = all.filter((i) => normIngs.includes(i));
-          const missing = all.filter((i) => !normIngs.includes(i));
+          const matched = all.filter((i) => normIngs.some((tok) => ingMatches(i, tok)));
+          const missing = all.filter((i) => !normIngs.some((tok) => ingMatches(i, tok)));
+          const matchedTokens = new Set(
+            normIngs.filter((tok) => all.some((i) => ingMatches(i, tok))),
+          );
           return {
             ...r,
             matched_ingredients: matched,
             missing_ingredients: missing,
-            match_score: all.length ? matched.length / all.length : 0,
+            match_score: normIngs.length ? matchedTokens.size / normIngs.length : 0,
           };
         })
         .sort((a, b) => b.match_score - a.match_score);
