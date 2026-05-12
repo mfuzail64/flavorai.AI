@@ -185,7 +185,7 @@ export type Dict = typeof en;
 // Native translators welcome — these are crafted for UI clarity, not literal word-for-word.
 
 export const kn: Dict = {
-  nav: { home: "ಮುಖಪುಟ", explore: "ಅನ್ವೇಷಿಸಿ", aiGenerator: "AI ಜನರೇಟರ್", settings: "ಸೆಟ್ಟಿಂಗ್ಸ್", login: "ಲಾಗ್ ಇನ್", signup: "ಸೈನ್ ಅಪ್", logout: "ಲಾಗ್ ಔಟ್", language: "ಭಾಷೆ" },
+  nav: { home: "ಮುಖಪುಟ", explore: "ಅನ್ವೇಷಿಸಿ", recipes: "ಪಾಕವಿಧಾನಗಳು", collections: "ಸಂಗ್ರಹಗಳು", favorites: "ಮೆಚ್ಚಿನವು", aiGenerator: "AI ಜನರೇಟರ್", settings: "ಸೆಟ್ಟಿಂಗ್ಸ್", login: "ಲಾಗ್ ಇನ್", signup: "ಸೈನ್ ಅಪ್", logout: "ಲಾಗ್ ಔಟ್", language: "ಭಾಷೆ" },
   common: { search: "ಹುಡುಕಿ", continue: "ಮುಂದುವರೆಯಿರಿ", skip: "ಬಿಟ್ಟುಬಿಡಿ", save: "ಉಳಿಸಿ", cancel: "ರದ್ದುಗೊಳಿಸಿ", loading: "ಲೋಡ್ ಆಗುತ್ತಿದೆ…", back: "ಹಿಂದೆ", share: "ಹಂಚಿಕೊಳ್ಳಿ", or: "ಅಥವಾ" },
   auth: {
     welcomeBack: "ಮತ್ತೆ ಸ್ವಾಗತ", signInDesc: "ಅಡುಗೆ ಮುಂದುವರಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ.",
@@ -242,7 +242,7 @@ export const kn: Dict = {
 };
 
 export const ur: Dict = {
-  nav: { home: "ہوم", explore: "دریافت کریں", aiGenerator: "AI جنریٹر", settings: "ترتیبات", login: "لاگ ان", signup: "سائن اپ", logout: "سائن آؤٹ", language: "زبان" },
+  nav: { home: "ہوم", explore: "دریافت کریں", recipes: "ترکیبیں", collections: "مجموعے", favorites: "پسندیدہ", aiGenerator: "AI جنریٹر", settings: "ترتیبات", login: "لاگ ان", signup: "سائن اپ", logout: "سائن آؤٹ", language: "زبان" },
   common: { search: "تلاش", continue: "جاری رکھیں", skip: "چھوڑیں", save: "محفوظ کریں", cancel: "منسوخ کریں", loading: "لوڈ ہو رہا ہے…", back: "واپس", share: "شیئر کریں", or: "یا" },
   auth: {
     welcomeBack: "خوش آمدید", signInDesc: "پکانا جاری رکھنے کے لیے سائن ان کریں۔",
@@ -297,7 +297,7 @@ export const ur: Dict = {
 };
 
 export const ta: Dict = {
-  nav: { home: "முகப்பு", explore: "ஆராயவும்", aiGenerator: "AI ஜெனரேட்டர்", settings: "அமைப்புகள்", login: "உள்நுழை", signup: "பதிவு", logout: "வெளியேறு", language: "மொழி" },
+  nav: { home: "முகப்பு", explore: "ஆராயவும்", recipes: "சமையல் குறிப்புகள்", collections: "தொகுப்புகள்", favorites: "பிடித்தவை", aiGenerator: "AI ஜெனரேட்டர்", settings: "அமைப்புகள்", login: "உள்நுழை", signup: "பதிவு", logout: "வெளியேறு", language: "மொழி" },
   common: { search: "தேடு", continue: "தொடரவும்", skip: "தவிர்", save: "சேமி", cancel: "ரத்து", loading: "ஏற்றுகிறது…", back: "பின்", share: "பகிர்", or: "அல்லது" },
   auth: {
     welcomeBack: "மீண்டும் வரவேற்கிறோம்", signInDesc: "சமைப்பதைத் தொடர உள்நுழையவும்.",
@@ -352,7 +352,7 @@ export const ta: Dict = {
 };
 
 export const ml: Dict = {
-  nav: { home: "ഹോം", explore: "പര്യവേക്ഷണം", aiGenerator: "AI ജനറേറ്റർ", settings: "ക്രമീകരണങ്ങൾ", login: "ലോഗിൻ", signup: "സൈൻ അപ്", logout: "സൈൻ ഔട്ട്", language: "ഭാഷ" },
+  nav: { home: "ഹോം", explore: "പര്യവേക്ഷണം", recipes: "പാചകക്കുറിപ്പുകൾ", collections: "ശേഖരങ്ങൾ", favorites: "പ്രിയപ്പെട്ടവ", aiGenerator: "AI ജനറേറ്റർ", settings: "ക്രമീകരണങ്ങൾ", login: "ലോഗിൻ", signup: "സൈൻ അപ്", logout: "സൈൻ ഔട്ട്", language: "ഭാഷ" },
   common: { search: "തിരയുക", continue: "തുടരുക", skip: "ഒഴിവാക്കുക", save: "സംരക്ഷിക്കുക", cancel: "റദ്ദാക്കുക", loading: "ലോഡ് ചെയ്യുന്നു…", back: "തിരികെ", share: "പങ്കിടുക", or: "അല്ലെങ്കിൽ" },
   auth: {
     welcomeBack: "വീണ്ടും സ്വാഗതം", signInDesc: "പാചകം തുടരാൻ സൈൻ ഇൻ ചെയ്യുക.",
@@ -407,7 +407,7 @@ export const ml: Dict = {
 };
 
 export const hi: Dict = {
-  nav: { home: "होम", explore: "एक्सप्लोर", aiGenerator: "AI जनरेटर", settings: "सेटिंग्स", login: "लॉग इन", signup: "साइन अप", logout: "साइन आउट", language: "भाषा" },
+  nav: { home: "होम", explore: "एक्सप्लोर", recipes: "रेसिपी", collections: "संग्रह", favorites: "पसंदीदा", aiGenerator: "AI जनरेटर", settings: "सेटिंग्स", login: "लॉग इन", signup: "साइन अप", logout: "साइन आउट", language: "भाषा" },
   common: { search: "खोजें", continue: "जारी रखें", skip: "छोड़ें", save: "सहेजें", cancel: "रद्द करें", loading: "लोड हो रहा है…", back: "वापस", share: "शेयर", or: "या" },
   auth: {
     welcomeBack: "वापस स्वागत है", signInDesc: "पकाना जारी रखने के लिए साइन इन करें।",
@@ -462,7 +462,7 @@ export const hi: Dict = {
 };
 
 export const te: Dict = {
-  nav: { home: "హోమ్", explore: "అన్వేషించండి", aiGenerator: "AI జనరేటర్", settings: "సెట్టింగ్‌లు", login: "లాగిన్", signup: "సైన్ అప్", logout: "సైన్ అవుట్", language: "భాష" },
+  nav: { home: "హోమ్", explore: "అన్వేషించండి", recipes: "వంటకాలు", collections: "సేకరణలు", favorites: "ఇష్టమైనవి", aiGenerator: "AI జనరేటర్", settings: "సెట్టింగ్‌లు", login: "లాగిన్", signup: "సైన్ అప్", logout: "సైన్ అవుట్", language: "భాష" },
   common: { search: "శోధించండి", continue: "కొనసాగించు", skip: "దాటవేయి", save: "సేవ్", cancel: "రద్దు", loading: "లోడ్ అవుతోంది…", back: "వెనుకకు", share: "షేర్", or: "లేదా" },
   auth: {
     welcomeBack: "మళ్లీ స్వాగతం", signInDesc: "వంట కొనసాగించడానికి సైన్ ఇన్ చేయండి.",
@@ -517,7 +517,7 @@ export const te: Dict = {
 };
 
 export const ar: Dict = {
-  nav: { home: "الرئيسية", explore: "استكشف", aiGenerator: "مولد AI", settings: "الإعدادات", login: "تسجيل الدخول", signup: "إنشاء حساب", logout: "تسجيل الخروج", language: "اللغة" },
+  nav: { home: "الرئيسية", explore: "استكشف", recipes: "الوصفات", collections: "المجموعات", favorites: "المفضلة", aiGenerator: "مولد AI", settings: "الإعدادات", login: "تسجيل الدخول", signup: "إنشاء حساب", logout: "تسجيل الخروج", language: "اللغة" },
   common: { search: "بحث", continue: "متابعة", skip: "تخطي", save: "حفظ", cancel: "إلغاء", loading: "جارٍ التحميل…", back: "رجوع", share: "مشاركة", or: "أو" },
   auth: {
     welcomeBack: "مرحبًا بعودتك", signInDesc: "سجّل الدخول لمواصلة الطهي.",
@@ -572,7 +572,7 @@ export const ar: Dict = {
 };
 
 export const mr: Dict = {
-  nav: { home: "मुख्यपृष्ठ", explore: "एक्सप्लोर", aiGenerator: "AI जनरेटर", settings: "सेटिंग्ज", login: "लॉग इन", signup: "साइन अप", logout: "साइन आऊट", language: "भाषा" },
+  nav: { home: "मुख्यपृष्ठ", explore: "एक्सप्लोर", recipes: "पाककृती", collections: "संग्रह", favorites: "आवडते", aiGenerator: "AI जनरेटर", settings: "सेटिंग्ज", login: "लॉग इन", signup: "साइन अप", logout: "साइन आऊट", language: "भाषा" },
   common: { search: "शोधा", continue: "सुरू ठेवा", skip: "वगळा", save: "जतन करा", cancel: "रद्द", loading: "लोड होत आहे…", back: "मागे", share: "शेअर", or: "किंवा" },
   auth: {
     welcomeBack: "परत स्वागत आहे", signInDesc: "स्वयंपाक सुरू ठेवण्यासाठी साइन इन करा.",
@@ -627,7 +627,7 @@ export const mr: Dict = {
 };
 
 export const bn: Dict = {
-  nav: { home: "হোম", explore: "এক্সপ্লোর", aiGenerator: "AI জেনারেটর", settings: "সেটিংস", login: "লগ ইন", signup: "সাইন আপ", logout: "সাইন আউট", language: "ভাষা" },
+  nav: { home: "হোম", explore: "এক্সপ্লোর", recipes: "রেসিপি", collections: "সংগ্রহ", favorites: "প্রিয়", aiGenerator: "AI জেনারেটর", settings: "সেটিংস", login: "লগ ইন", signup: "সাইন আপ", logout: "সাইন আউট", language: "ভাষা" },
   common: { search: "খুঁজুন", continue: "চালিয়ে যান", skip: "এড়িয়ে যান", save: "সংরক্ষণ", cancel: "বাতিল", loading: "লোড হচ্ছে…", back: "ফিরে", share: "শেয়ার", or: "অথবা" },
   auth: {
     welcomeBack: "ফিরে আসায় স্বাগতম", signInDesc: "রান্না চালিয়ে যেতে সাইন ইন করুন।",
