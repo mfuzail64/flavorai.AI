@@ -8,6 +8,9 @@ export const en = {
   nav: {
     home: "Home",
     explore: "Explore",
+    recipes: "Recipes",
+    collections: "Collections",
+    favorites: "Favorites",
     aiGenerator: "AI Generator",
     settings: "Settings",
     login: "Log in",

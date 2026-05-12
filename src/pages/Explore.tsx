@@ -105,7 +105,7 @@ const Explore = () => {
             <div className="flex flex-wrap gap-2">
               {COLLECTIONS.map((col) => {
                 const active = sel.kind === "collection" && (sel as any).labelKey === col.labelKey;
-                const { labelKey, ...query } = col as any;
+                const { labelKey, key, ...query } = col as any;
                 return (
                   <button
                     key={col.labelKey}
