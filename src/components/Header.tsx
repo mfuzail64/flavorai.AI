@@ -30,9 +30,20 @@ const Header = () => {
           <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
             {t("nav.home")}
           </Link>
+          <Link to="/recipes" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+            {t("nav.recipes", "Recipes")}
+          </Link>
           <Link to="/explore" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
             {t("nav.explore")}
           </Link>
+          <Link to="/collections" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+            {t("nav.collections", "Collections")}
+          </Link>
+          {user && (
+            <Link to="/favorites" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+              {t("nav.favorites", "Favorites")}
+            </Link>
+          )}
           <Link to="/ai-generator" className="text-muted-foreground hover:text-foreground transition-colors font-medium inline-flex items-center gap-1">
             <Sparkles className="h-4 w-4" />
             {t("nav.aiGenerator")}
