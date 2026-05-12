@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import RecipeCard from "@/components/RecipeCard";
@@ -13,22 +14,48 @@ type Selection =
 
 const Explore = () => {
   const { t } = useTranslation();
-  const [sel, setSel] = useState<Selection>({ kind: "cuisine", value: "Italian", label: "Italian" });
+  const [searchParams] = useSearchParams();
 
-  const COLLECTIONS = [
-    { labelKey: "collections.trending2026", tag: "trending" },
-    { labelKey: "collections.viral", tag: "viral" },
-    { labelKey: "collections.quick15", maxTime: 15 },
-    { labelKey: "collections.student", tag: "student" },
-    { labelKey: "collections.budget", tag: "budget" },
-    { labelKey: "collections.highProtein", diet: "High-Protein" },
-    { labelKey: "collections.keto", diet: "Keto" },
-    { labelKey: "collections.vegan", diet: "Vegan" },
-    { labelKey: "collections.vegetarian", diet: "Vegetarian" },
-    { labelKey: "collections.desserts", category: "Dessert" },
-    { labelKey: "collections.drinks", category: "Drink" },
-    { labelKey: "collections.streetFood", tag: "street-food" },
-  ];
+  const COLLECTIONS = useMemo(
+    () => [
+      { labelKey: "collections.trending2026", key: "trending2026", tag: "trending" },
+      { labelKey: "collections.viral", key: "viral", tag: "viral" },
+      { labelKey: "collections.quick15", key: "quick15", maxTime: 15 },
+      { labelKey: "collections.student", key: "student", tag: "student" },
+      { labelKey: "collections.budget", key: "budget", tag: "budget" },
+      { labelKey: "collections.highProtein", key: "highProtein", diet: "High-Protein" },
+      { labelKey: "collections.keto", key: "keto", diet: "Keto" },
+      { labelKey: "collections.vegan", key: "vegan", diet: "Vegan" },
+      { labelKey: "collections.vegetarian", key: "vegetarian", diet: "Vegetarian" },
+      { labelKey: "collections.desserts", key: "desserts", category: "Dessert" },
+      { labelKey: "collections.drinks", key: "drinks", category: "Drink" },
+      { labelKey: "collections.streetFood", key: "streetFood", tag: "street-food" },
+    ],
+    [],
+  );
+
+  const collectionParam = searchParams.get("collection");
+  const initialFromParam = collectionParam
+    ? COLLECTIONS.find((c) => c.key === collectionParam)
+    : undefined;
+
+  const [sel, setSel] = useState<Selection>(
+    initialFromParam
+      ? (() => {
+          const { labelKey, key, ...query } = initialFromParam as any;
+          return { kind: "collection", query, labelKey };
+        })()
+      : { kind: "cuisine", value: "Italian", label: "Italian" },
+  );
+
+  useEffect(() => {
+    if (!collectionParam) return;
+    const match = COLLECTIONS.find((c) => c.key === collectionParam);
+    if (match) {
+      const { labelKey, key, ...query } = match as any;
+      setSel({ kind: "collection", query, labelKey });
+    }
+  }, [collectionParam, COLLECTIONS]);
 
   const params =
     sel.kind === "cuisine"
