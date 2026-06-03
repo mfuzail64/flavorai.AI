@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { UtensilsCrossed, Sparkles, Flame, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -9,13 +9,23 @@ import QuickAddSection from "@/components/QuickAddSection";
 import RecipeCard from "@/components/RecipeCard";
 import RecipeCardSkeleton from "@/components/RecipeCardSkeleton";
 import FilterBar, { type FilterState } from "@/components/FilterBar";
+import LandingHero from "@/components/LandingHero";
+import FeatureGrid from "@/components/FeatureGrid";
+import Testimonials from "@/components/Testimonials";
+import FAQ from "@/components/FAQ";
 import { useRecipeSearch, useTrending } from "@/hooks/useRecipes";
 import { toast } from "sonner";
+
 
 const Index = () => {
   const { t } = useTranslation();
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({});
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSearch = () =>
+    searchRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
 
   const handleAddIngredient = (ingredient: string) => {
     const normalized = ingredient.toLowerCase().trim();
@@ -51,22 +61,16 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Hero */}
-      <section className="relative py-14 md:py-20 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-accent/40 to-transparent pointer-events-none" />
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent rounded-full text-accent-foreground text-sm font-medium mb-6 animate-fade-in">
-            <Sparkles className="w-4 h-4" />
-            {t("home.heroBadge")}
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-            {t("home.heroTitle1")} <span className="text-primary">{t("home.heroTitleAccent")}</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            {t("home.heroSubtitle")}
-          </p>
+      <LandingHero onSeeDemo={scrollToSearch} />
 
-          <div className="flex flex-col items-center gap-5">
+      {/* Ingredient search panel */}
+      <section ref={searchRef} className="relative px-5 sm:px-6 pb-6 -mt-4 md:-mt-8 scroll-mt-24">
+        <div className="max-w-3xl mx-auto rounded-3xl border border-border bg-card/80 backdrop-blur-xl p-5 sm:p-7 shadow-card">
+          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground mb-4">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span>Try it now — type what's in your kitchen</span>
+          </div>
+          <div className="flex flex-col items-center gap-4">
             <IngredientInput onAddIngredient={handleAddIngredient} />
 
             {ingredients.length > 0 && (
@@ -81,6 +85,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <FeatureGrid />
+
 
       {/* Filters + Results */}
       <section className="py-10 px-6">
@@ -143,11 +150,32 @@ const Index = () => {
         </div>
       </section>
 
-      <footer className="py-8 px-6 border-t border-border mt-6">
+      <Testimonials />
+      <FAQ />
+
+      {/* Final CTA */}
+      <section className="px-5 sm:px-6 pb-16">
+        <div className="max-w-4xl mx-auto rounded-3xl border border-border gradient-card p-8 md:p-12 text-center shadow-card">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-balance">
+            Start cooking smarter today
+          </h2>
+          <p className="mt-2 text-muted-foreground text-balance">
+            Free forever. No credit card. Personalized in seconds.
+          </p>
+          <Link
+            to="/auth"
+            className="inline-flex items-center justify-center mt-6 h-12 px-7 rounded-full gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-95 transition-opacity"
+          >
+            Start Free
+          </Link>
+        </div>
+      </section>
+      <footer className="py-8 px-6 border-t border-border">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground text-sm">
           {t("home.footer")}
         </div>
       </footer>
+
     </div>
   );
 };
