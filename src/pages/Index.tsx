@@ -21,6 +21,11 @@ const Index = () => {
   const { t } = useTranslation();
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({});
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSearch = () =>
+    searchRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
 
   const handleAddIngredient = (ingredient: string) => {
     const normalized = ingredient.toLowerCase().trim();
