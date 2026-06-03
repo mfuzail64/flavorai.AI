@@ -25,6 +25,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [magicLoading, setMagicLoading] = useState(false);
 
   useEffect(() => {
     if (user) navigate(from, { replace: true });
@@ -56,6 +57,19 @@ const Auth = () => {
     toast.success(t("auth.accountCreatedToast"));
     navigate(from, { replace: true });
   };
+
+  const handleMagicLink = async () => {
+    if (!email) return toast.error("Enter your email first");
+    setMagicLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
+    setMagicLoading(false);
+    if (error) return toast.error("Couldn't send link", { description: error.message });
+    toast.success("Check your inbox", { description: "We sent you a magic sign-in link." });
+  };
+
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-10">
