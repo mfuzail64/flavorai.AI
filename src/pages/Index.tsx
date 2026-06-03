@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { UtensilsCrossed, Sparkles, Flame, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -9,8 +9,13 @@ import QuickAddSection from "@/components/QuickAddSection";
 import RecipeCard from "@/components/RecipeCard";
 import RecipeCardSkeleton from "@/components/RecipeCardSkeleton";
 import FilterBar, { type FilterState } from "@/components/FilterBar";
+import LandingHero from "@/components/LandingHero";
+import FeatureGrid from "@/components/FeatureGrid";
+import Testimonials from "@/components/Testimonials";
+import FAQ from "@/components/FAQ";
 import { useRecipeSearch, useTrending } from "@/hooks/useRecipes";
 import { toast } from "sonner";
+
 
 const Index = () => {
   const { t } = useTranslation();
