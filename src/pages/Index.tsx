@@ -150,7 +150,27 @@ const Index = () => {
         </div>
       </section>
 
-      <footer className="py-8 px-6 border-t border-border mt-6">
+      <Testimonials />
+      <FAQ />
+
+      {/* Final CTA */}
+      <section className="px-5 sm:px-6 pb-16">
+        <div className="max-w-4xl mx-auto rounded-3xl border border-border gradient-card p-8 md:p-12 text-center shadow-card">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-balance">
+            Start cooking smarter today
+          </h2>
+          <p className="mt-2 text-muted-foreground text-balance">
+            Free forever. No credit card. Personalized in seconds.
+          </p>
+          <Link
+            to="/auth"
+            className="inline-flex items-center justify-center mt-6 h-12 px-7 rounded-full gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-95 transition-opacity"
+          >
+            Start Free
+          </Link>
+        </div>
+      </section>
+
         <div className="max-w-6xl mx-auto text-center text-muted-foreground text-sm">
           {t("home.footer")}
         </div>
