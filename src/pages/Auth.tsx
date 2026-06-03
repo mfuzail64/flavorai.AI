@@ -150,9 +150,20 @@ const Auth = () => {
 
           <GoogleButton />
 
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleMagicLink}
+            disabled={magicLoading}
+            className="w-full h-11 rounded-xl mt-3"
+          >
+            {magicLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Email me a magic link"}
+          </Button>
+
           <p className="text-center text-xs text-muted-foreground mt-6">
             {t("auth.terms")}
           </p>
+
         </div>
       </motion.div>
     </div>
