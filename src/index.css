@@ -87,29 +87,26 @@
     @apply border-border;
   }
 
+  html {
+    color-scheme: dark;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    background-image:
+      radial-gradient(60% 50% at 50% 0%, hsl(22 100% 55% / 0.10) 0%, transparent 60%),
+      radial-gradient(40% 30% at 100% 100%, hsl(22 100% 55% / 0.06) 0%, transparent 70%);
+    background-attachment: fixed;
   }
 }
 
 @layer utilities {
-  .gradient-hero {
-    background: var(--gradient-hero);
-  }
-  
-  .gradient-card {
-    background: var(--gradient-card);
-  }
-  
-  .shadow-card {
-    box-shadow: var(--shadow-card);
-  }
-  
-  .shadow-card-hover {
-    box-shadow: var(--shadow-card-hover);
-  }
-  
-  .shadow-glow {
-    box-shadow: var(--shadow-glow);
-  }
+  .gradient-hero { background: var(--gradient-hero); }
+  .gradient-card { background: var(--gradient-card); }
+  .gradient-primary { background: var(--gradient-primary); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-card-hover { box-shadow: var(--shadow-card-hover); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+  .text-balance { text-wrap: balance; }
 }
+
