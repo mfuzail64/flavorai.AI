@@ -7,6 +7,13 @@
 @import url('@fontsource/outfit/600.css');
 @import url('@fontsource/outfit/700.css');
 
+@import url('@fontsource/instrument-serif/400.css');
+@import url('@fontsource/instrument-serif/400-italic.css');
+
+@import url('@fontsource/work-sans/400.css');
+@import url('@fontsource/work-sans/500.css');
+@import url('@fontsource/work-sans/600.css');
+
 @layer base {
   :root {
     /* Premium dark — pure black with warm orange accent (FlavorAI rebrand) */
