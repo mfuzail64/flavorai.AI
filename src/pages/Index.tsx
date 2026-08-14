@@ -64,7 +64,7 @@ const Index = () => {
       <LandingHero onSeeDemo={scrollToSearch} />
 
       {/* Ingredient search panel */}
-      <section ref={searchRef} className="relative px-5 sm:px-6 pb-6 -mt-4 md:-mt-8 scroll-mt-24">
+      <section ref={searchRef} className="relative px-5 sm:px-6 py-6 md:py-10 scroll-mt-24">
         <div className="max-w-3xl mx-auto rounded-3xl border border-border bg-card/80 backdrop-blur-xl p-5 sm:p-7 shadow-card">
           <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground mb-4">
             <Sparkles className="h-4 w-4 text-primary" />
