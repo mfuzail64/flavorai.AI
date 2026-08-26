@@ -139,9 +139,21 @@ serve(async (req) => {
     if (!aiResp.ok) {
       const t = await aiResp.text();
       console.error("img ai error", aiResp.status, t);
-      await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipe_id);
-      return new Response(JSON.stringify({ error: "image gen failed" }), {
-        status: 500,
+      // 402/403 (credits / policy) and 429/5xx are not the recipe's fault — keep any
+      // existing image and status intact so the UI doesn't fall back unnecessarily.
+      const transient = [402, 403, 429].includes(aiResp.status) || aiResp.status >= 500;
+      if (!transient) {
+        const { data: cur } = await supabase
+          .from("recipes")
+          .select("image_url")
+          .eq("id", recipe_id)
+          .single();
+        if (!cur?.image_url) {
+          await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipe_id);
+        }
+      }
+      return new Response(JSON.stringify({ error: t, status: aiResp.status }), {
+        status: aiResp.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
