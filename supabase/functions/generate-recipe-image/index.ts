@@ -155,7 +155,7 @@ serve(async (req) => {
 
     const { bytes, mime } = dataUrlToBytes(dataUrl);
     const ext = mime.split("/")[1] || "png";
-    const path = `${recipe_id}.${ext}`;
+    const path = `${recipe_id}-${Date.now()}.${ext}`;
 
     const { error: upErr } = await supabase.storage.from("recipe-images").upload(path, bytes, {
       contentType: mime,
