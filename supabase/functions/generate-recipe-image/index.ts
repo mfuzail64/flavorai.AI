@@ -22,6 +22,81 @@ function dataUrlToBytes(dataUrl: string): { bytes: Uint8Array; mime: string } {
   return { bytes, mime };
 }
 
+// Deterministic-but-varied styling so no two recipes share a composition.
+const ANGLES = [
+  "straight-on eye-level shot",
+  "45-degree three-quarter angle",
+  "top-down flat lay",
+  "low angle hero shot",
+  "close-up macro detail shot",
+  "slightly overhead 60-degree angle",
+];
+const SURFACES = [
+  "dark slate board",
+  "rustic weathered wood table",
+  "white marble countertop",
+  "matte black ceramic surface",
+  "warm terracotta tiles",
+  "linen-draped table",
+  "brushed steel kitchen counter",
+];
+const LIGHTING = [
+  "soft window daylight from the side",
+  "warm golden-hour light",
+  "moody low-key lighting with deep shadows",
+  "bright airy diffused light",
+  "dramatic directional light with soft falloff",
+];
+const VESSELS = [
+  "served in its traditional authentic serveware",
+  "plated on a handmade ceramic plate",
+  "in a rustic bowl with visible steam",
+  "on a banana leaf / traditional platter if culturally appropriate",
+  "on a simple minimalist plate with negative space",
+];
+
+function hash(s: string) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function pick<T>(arr: T[], seed: number, salt: number) {
+  return arr[(seed + salt * 7919) % arr.length];
+}
+
+function buildPrompt(
+  id: string,
+  title: string,
+  description?: string | null,
+  cuisine?: string | null,
+  category?: string | null,
+  ingredients?: { name: string }[] | null,
+) {
+  const seed = hash(id + title);
+  const key = (ingredients ?? [])
+    .slice(0, 6)
+    .map((i) => i.name)
+    .join(", ");
+  return [
+    `Ultra-realistic professional food photograph of "${title}" — the exact, authentic dish named, nothing else.`,
+    `It must be unmistakably recognizable as ${title}${cuisine ? ` from ${cuisine} cuisine` : ""}${
+      category ? ` (${category})` : ""
+    }.`,
+    description ? `Dish description: ${description}` : "",
+    key ? `Visible key ingredients: ${key}.` : "",
+    `Correct ingredients, realistic textures and proportions, appropriate authentic garnish and accompaniments.`,
+    `Composition: ${pick(ANGLES, seed, 1)}, ${pick(VESSELS, seed, 2)}, on a ${pick(SURFACES, seed, 3)}, ${pick(
+      LIGHTING,
+      seed,
+      4,
+    )}, shallow depth of field, editorial food-magazine styling.`,
+    `Absolutely no text, no watermarks, no logos, no people, no cartoon or illustration style. Photorealistic only.`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -35,12 +110,17 @@ serve(async (req) => {
     if (!imgPrompt) {
       const { data: r } = await supabase
         .from("recipes")
-        .select("title, description, cuisine")
+        .select("title, description, cuisine, category, ingredients")
         .eq("id", recipe_id)
         .single();
-      imgPrompt = `Restaurant-quality food photography of ${r?.title ?? title ?? "a dish"}, ${
-        r?.description ?? ""
-      }, ${r?.cuisine ?? ""} cuisine, top-down 45 degree angle, natural lighting, vibrant colors, on a clean ceramic plate, shallow depth of field, no text, ultra detailed`;
+      imgPrompt = buildPrompt(
+        recipe_id,
+        r?.title ?? title ?? "a dish",
+        r?.description,
+        r?.cuisine,
+        r?.category,
+        r?.ingredients as { name: string }[] | null,
+      );
     }
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -50,7 +130,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
+        model: "google/gemini-3.1-flash-image",
         messages: [{ role: "user", content: imgPrompt }],
         modalities: ["image", "text"],
       }),
