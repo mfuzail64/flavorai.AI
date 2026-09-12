@@ -1,14 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+import {
+  corsHeaders,
+  json,
+  serviceClient,
+  readJsonBody,
+  str,
+  int,
+  stringList,
+  escapeLike,
+  rateLimit,
+  callerKey,
+  getUserId,
+  tooManyRequests,
+  ValidationError,
+  SUPABASE_URL,
+  SERVICE_ROLE,
+} from "../_shared/security.ts";
 
 const MIN_RESULTS = 8;
 const PAGE = 24;
@@ -19,48 +26,49 @@ function normalize(name: string) {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const {
-      query,
-      ingredients = [],
-      cuisine,
-      category,
-      diet,
-      maxCalories,
-      maxTime,
-      tag,
-      autofill = true,
-      limit = PAGE,
-    } = body as any;
+    const body = await readJsonBody(req);
 
-    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const query = str(body.query, "Search text", { max: 200 });
+    const ingredients = stringList(body.ingredients, "Ingredients", { maxItems: 30, maxLength: 40 });
+    const cuisine = str(body.cuisine, "Cuisine", { max: 40 });
+    const category = str(body.category, "Category", { max: 40 });
+    const diet = str(body.diet, "Diet", { max: 40 });
+    const tag = str(body.tag, "Tag", { max: 40 });
+    const maxCalories = int(body.maxCalories, "Max calories", { min: 50, max: 5000 });
+    const maxTime = int(body.maxTime, "Max time", { min: 1, max: 600 });
+    const limit = int(body.limit, "Limit", { min: 1, max: PAGE, fallback: PAGE })!;
+    const autofill = body.autofill === undefined ? true : body.autofill === true;
+
+    const userId = await getUserId(req);
+    const caller = callerKey(req, userId);
+    const limited = await rateLimit({
+      key: caller,
+      action: "search-recipes",
+      max: 60,
+      windowSeconds: 60,
+    });
+    if (!limited.allowed) return tooManyRequests();
+
+    const supabase = serviceClient();
 
     let recipeIds: string[] | null = null;
-    const normIngs = (ingredients as string[]).map(normalize).filter(Boolean);
+    const normIngs = ingredients.map(normalize).map(escapeLike).filter(Boolean);
 
-    // Helper: does an indexed ingredient string contain any of the user's tokens?
-    const ingMatches = (indexed: string, token: string) => {
-      const i = indexed.toLowerCase();
-      // word-boundary-ish: token appears as a substring (handles "large egg", "egg yolk", "garlic, minced")
-      return i.includes(token);
-    };
+    const ingMatches = (indexed: string, token: string) =>
+      indexed.toLowerCase().includes(token);
 
     if (normIngs.length) {
-      // Pull every indexed row that ILIKEs ANY of the user tokens in one query
-      const orFilter = normIngs
-        .map((t) => `ingredient.ilike.%${t.replace(/[,()]/g, "")}%`)
-        .join(",");
+      const orFilter = normIngs.map((t) => `ingredient.ilike.%${t}%`).join(",");
       const { data: matches } = await supabase
         .from("recipe_ingredients_index")
         .select("recipe_id, ingredient")
         .or(orFilter);
 
-      // Count UNIQUE user-tokens matched per recipe (so "large egg" + "egg yolk" both
-      // matching "egg" count as 1, not 2)
       const tokensByRecipe = new Map<string, Set<string>>();
-      (matches || []).forEach((m: any) => {
+      (matches || []).forEach((m: { recipe_id: string; ingredient: string }) => {
         for (const tok of normIngs) {
           if (ingMatches(m.ingredient, tok)) {
             if (!tokensByRecipe.has(m.recipe_id)) tokensByRecipe.set(m.recipe_id, new Set());
@@ -91,7 +99,6 @@ serve(async (req) => {
 
     let results = recipes || [];
 
-    // Compute match info using the same substring logic
     if (normIngs.length) {
       const ids = results.map((r) => r.id);
       const { data: allIng } = await supabase
@@ -99,7 +106,7 @@ serve(async (req) => {
         .select("recipe_id, ingredient")
         .in("recipe_id", ids);
       const byRecipe = new Map<string, string[]>();
-      (allIng || []).forEach((m: any) => {
+      (allIng || []).forEach((m: { recipe_id: string; ingredient: string }) => {
         if (!byRecipe.has(m.recipe_id)) byRecipe.set(m.recipe_id, []);
         byRecipe.get(m.recipe_id)!.push(m.ingredient);
       });
@@ -121,46 +128,54 @@ serve(async (req) => {
         .sort((a, b) => b.match_score - a.match_score);
     }
 
-    // Autofill: if too few results AND there is a real intent, generate more
-    const hasIntent = (normIngs.length > 0) || query || cuisine || category || diet || tag;
+    const hasIntent = normIngs.length > 0 || !!query || !!cuisine || !!category || !!diet || !!tag;
     if (autofill && hasIntent && results.length < MIN_RESULTS) {
-      try {
-        const genResp = await fetch(`${SUPABASE_URL}/functions/v1/generate-recipes`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${SERVICE_ROLE}`,
-          },
-          body: JSON.stringify({
-            ingredients: normIngs,
-            cuisine,
-            category,
-            diet,
-            maxTime,
-            query,
-            count: Math.max(6, MIN_RESULTS - results.length),
-          }),
-        });
-        if (genResp.ok) {
-          const gen = await genResp.json();
-          const existingIds = new Set(results.map((r) => r.id));
-          for (const r of gen.recipes || []) {
-            if (!existingIds.has(r.id)) results.push({ ...r, match_score: 0, matched_ingredients: [], missing_ingredients: [] });
+      // AI generation is expensive: throttle it separately from plain search.
+      const genAllowed = await rateLimit({
+        key: caller,
+        action: "search-autofill-ai",
+        max: 10,
+        windowSeconds: 3600,
+      });
+      if (genAllowed.allowed) {
+        try {
+          const genResp = await fetch(`${SUPABASE_URL}/functions/v1/generate-recipes`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${SERVICE_ROLE}`,
+            },
+            body: JSON.stringify({
+              ingredients: normIngs,
+              cuisine,
+              category,
+              diet,
+              maxTime,
+              query,
+              count: Math.max(6, MIN_RESULTS - results.length),
+            }),
+          });
+          if (genResp.ok) {
+            const gen = await genResp.json();
+            const existingIds = new Set(results.map((r) => r.id));
+            for (const r of gen.recipes || []) {
+              if (!existingIds.has(r.id)) {
+                results.push({ ...r, match_score: 0, matched_ingredients: [], missing_ingredients: [] });
+              }
+            }
+          } else {
+            console.error("autofill generation returned", genResp.status);
           }
+        } catch (e) {
+          console.error("autofill failed", e instanceof Error ? e.message : e);
         }
-      } catch (e) {
-        console.error("autofill failed", e);
       }
     }
 
-    return new Response(JSON.stringify({ recipes: results }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ recipes: results });
   } catch (e) {
-    console.error(e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    if (e instanceof ValidationError) return json({ error: e.message }, 400);
+    console.error("search-recipes failed", e instanceof Error ? e.message : e);
+    return json({ error: "Something went wrong while searching recipes." }, 500);
   }
 });
