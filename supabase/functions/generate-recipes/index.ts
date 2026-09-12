@@ -1,14 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import {
+  corsHeaders,
+  json,
+  serviceClient,
+  readJsonBody,
+  str,
+  int,
+  stringList,
+  rateLimit,
+  callerKey,
+  getUserId,
+  isInternalCall,
+  tooManyRequests,
+  ValidationError,
+  SUPABASE_URL,
+  SERVICE_ROLE,
+} from "../_shared/security.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
 function slugify(s: string) {
@@ -125,26 +133,33 @@ const recipeTool = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const {
-      ingredients = [],
-      cuisine,
-      category,
-      diet,
-      maxTime,
-      query,
-      count = 6,
-    } = body as {
-      ingredients?: string[];
-      cuisine?: string;
-      category?: string;
-      diet?: string;
-      maxTime?: number;
-      query?: string;
-      count?: number;
-    };
+    const internal = isInternalCall(req);
+    const userId = internal ? null : await getUserId(req);
+    if (!internal && !userId) {
+      return json({ error: "Please sign in to generate recipes." }, 401);
+    }
+
+    if (!internal) {
+      const limited = await rateLimit({
+        key: callerKey(req, userId),
+        action: "generate-recipes",
+        max: 15,
+        windowSeconds: 3600,
+      });
+      if (!limited.allowed) return tooManyRequests(600);
+    }
+
+    const body = await readJsonBody(req);
+    const ingredients = stringList(body.ingredients, "Ingredients", { maxItems: 30, maxLength: 40 });
+    const cuisine = str(body.cuisine, "Cuisine", { max: 40 });
+    const category = str(body.category, "Category", { max: 40 });
+    const diet = str(body.diet, "Diet", { max: 40 });
+    const query = str(body.query, "Theme", { max: 200 });
+    const maxTime = int(body.maxTime, "Max time", { min: 1, max: 600 });
+    const count = int(body.count, "Count", { min: 1, max: 12, fallback: 6 })!;
 
     const constraints: string[] = [];
     if (ingredients.length)
@@ -206,7 +221,7 @@ serve(async (req) => {
     const parsed = JSON.parse(args);
     const recipesIn: any[] = parsed.recipes || [];
 
-    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const supabase = serviceClient();
 
     const inserted: any[] = [];
     for (const r of recipesIn) {
