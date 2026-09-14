@@ -13,6 +13,7 @@ import LandingHero from "@/components/LandingHero";
 import FeatureGrid from "@/components/FeatureGrid";
 import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
+import Footer from "@/components/Footer";
 import { useRecipeSearch, useTrending } from "@/hooks/useRecipes";
 import { toast } from "sonner";
 
@@ -170,11 +171,7 @@ const Index = () => {
           </Link>
         </div>
       </section>
-      <footer className="py-8 px-6 border-t border-border">
-        <div className="max-w-6xl mx-auto text-center text-muted-foreground text-sm">
-          {t("home.footer")}
-        </div>
-      </footer>
+      <Footer />
 
     </div>
   );
