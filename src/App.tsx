@@ -18,6 +18,9 @@ import SelectLanguage from "./pages/SelectLanguage";
 import Favorites from "./pages/Favorites";
 import Recipes from "./pages/Recipes";
 import Collections from "./pages/Collections";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Refund from "./pages/Refund";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +65,9 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/refund" element={<Refund />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
