@@ -161,10 +161,10 @@ const LandingHero = ({ onSeeDemo }: Props) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.38 }}
-          className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground font-body"
+          className="mt-5 flex items-center justify-center gap-2 text-sm text-muted-foreground font-body"
         >
           <Heart className="h-3.5 w-3.5 fill-primary text-primary" />
-          <span>4.9 / 5 from 2,300+ reviews</span>
+          <span>Free to start — no credit card needed</span>
         </motion.div>
       </div>
 
