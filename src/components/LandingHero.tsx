@@ -51,9 +51,11 @@ const LandingHero = ({ onSeeDemo }: Props) => {
           className="mb-8 inline-flex items-center gap-3"
         >
           <span className="hidden sm:block h-px w-8 bg-primary/40" />
-          <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+          {/* All-caps reserved for the short label; the rest is sentence case */}
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-primary">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            AI Meal Coach · trusted by 50k+ home cooks
+            <span className="text-xs font-semibold uppercase tracking-[0.2em]">AI Meal Coach</span>
+            <span className="text-muted-foreground">Built for home cooks</span>
           </span>
           <span className="hidden sm:block h-px w-8 bg-primary/40" />
         </motion.div>
@@ -64,7 +66,7 @@ const LandingHero = ({ onSeeDemo }: Props) => {
           initial="initial"
           animate="animate"
           transition={{ duration: 0.6, delay: 0.05 }}
-          className="font-serif text-balance text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[0.95] text-foreground"
+          className="font-serif text-balance text-5xl sm:text-6xl md:text-7xl font-normal tracking-tight leading-[0.95] text-foreground"
         >
           AI Meal Coach for{" "}
           <span className="italic text-primary">Personalized</span>{" "}
@@ -77,7 +79,7 @@ const LandingHero = ({ onSeeDemo }: Props) => {
           initial="initial"
           animate="animate"
           transition={{ duration: 0.6, delay: 0.12 }}
-          className="mt-6 md:mt-8 font-body text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-balance leading-relaxed"
+          className="mt-6 md:mt-8 font-body text-base md:text-lg text-muted-foreground max-w-2xl mx-auto text-balance leading-relaxed"
         >
           Get smart meals, calories, and nutrition guidance in seconds — built around what's already in your kitchen.
         </motion.p>
@@ -102,38 +104,37 @@ const LandingHero = ({ onSeeDemo }: Props) => {
                   onFocus={onSeeDemo}
                   onKeyDown={handleKeyDown}
                   placeholder="What's in your fridge? (e.g., chicken, rice, tomato)"
-                  className="w-full bg-transparent border-none outline-none py-3.5 sm:py-4 text-foreground placeholder:text-muted-foreground/70 font-body text-sm sm:text-base"
+                  aria-label="Ingredients you already have"
+                  className="w-full bg-transparent border-none outline-none py-3.5 sm:py-4 text-foreground placeholder:text-muted-foreground/70 font-body text-base"
                 />
               </div>
               <Button
                 onClick={handleGenerate}
-                size="default"
-                className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl gradient-primary text-primary-foreground font-semibold shadow-glow hover:opacity-95 transition-opacity whitespace-nowrap"
+                variant="hero"
+                size="xl"
+                className="w-full sm:w-auto whitespace-nowrap"
               >
-                Generate Plan
+                Generate my meal plan
               </Button>
             </div>
           </div>
 
-          {/* Secondary actions */}
-          <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-            <button
+          {/* Secondary actions — single centered row, matching baselines */}
+          <div className="mt-5 flex items-center justify-center gap-6">
+            <Button
               onClick={onSeeDemo}
-              className="group flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors duration-300"
-              aria-label="See demo"
+              variant="link"
+              size="sm"
+              className="text-muted-foreground hover:text-primary no-underline hover:no-underline"
             >
-              <span className="text-xs font-semibold uppercase tracking-widest">See Demo</span>
-              <div className="relative w-5 h-8 border border-border rounded-full flex justify-center p-1 group-hover:border-primary/50 transition-colors">
-                <div className="w-0.5 h-1.5 bg-primary/60 rounded-full animate-bounce" />
-              </div>
-            </button>
+              See how it works
+            </Button>
 
-            <Link
-              to="/auth"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/90 transition-colors"
-            >
-              Start Free <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+            <Button asChild variant="link" size="sm">
+              <Link to="/auth">
+                Create free account <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </div>
         </motion.div>
 
@@ -147,7 +148,7 @@ const LandingHero = ({ onSeeDemo }: Props) => {
           {trust.map(({ icon: Icon, label }) => (
             <li
               key={label}
-              className="flex items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card/40 backdrop-blur px-3 py-2.5 text-xs sm:text-sm text-muted-foreground"
+              className="flex items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card/40 backdrop-blur px-3 py-2.5 text-sm text-muted-foreground"
             >
               <Icon className="h-4 w-4 text-primary shrink-0" />
               <span className="truncate font-body">{label}</span>
@@ -160,10 +161,10 @@ const LandingHero = ({ onSeeDemo }: Props) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.38 }}
-          className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground font-body"
+          className="mt-5 flex items-center justify-center gap-2 text-sm text-muted-foreground font-body"
         >
           <Heart className="h-3.5 w-3.5 fill-primary text-primary" />
-          <span>4.9 / 5 from 2,300+ reviews</span>
+          <span>Free to start — no credit card needed</span>
         </motion.div>
       </div>
 
