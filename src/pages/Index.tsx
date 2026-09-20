@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { UtensilsCrossed, Sparkles, Flame, TrendingUp } from "lucide-react";
+import SectionHeading from "@/components/SectionHeading";
+import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
@@ -21,6 +23,7 @@ import { toast } from "sonner";
 const Index = () => {
   const { t } = useTranslation();
   const [ingredients, setIngredients] = useState<string[]>([]);
+  const [ingredientQuery, setIngredientQuery] = useState("");
   const [filters, setFilters] = useState<FilterState>({});
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -33,6 +36,7 @@ const Index = () => {
     if (normalized && !ingredients.includes(normalized)) {
       setIngredients((prev) => [...prev, normalized]);
     }
+    setIngredientQuery("");
   };
 
   const handleRemoveIngredient = (i: string) =>
@@ -72,7 +76,11 @@ const Index = () => {
             <span>Try it now — type what's in your kitchen</span>
           </div>
           <div className="flex flex-col items-center gap-4">
-            <IngredientInput onAddIngredient={handleAddIngredient} />
+            <IngredientInput
+              onAddIngredient={handleAddIngredient}
+              value={ingredientQuery}
+              onValueChange={setIngredientQuery}
+            />
 
             {ingredients.length > 0 && (
               <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
@@ -82,7 +90,11 @@ const Index = () => {
               </div>
             )}
 
-            <QuickAddSection onAddIngredient={handleAddIngredient} currentIngredients={ingredients} />
+            <QuickAddSection
+              onAddIngredient={handleAddIngredient}
+              currentIngredients={ingredients}
+              search={ingredientQuery}
+            />
           </div>
         </div>
       </section>
