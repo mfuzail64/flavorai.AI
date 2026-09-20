@@ -58,6 +58,18 @@ const Index = () => {
   const { data: results, isLoading, error } = useRecipeSearch(params, enabled);
   const trending = useTrending(8);
 
+  // Guard against repeated cards in the trending grid (same id or same title)
+  const trendingUnique = useMemo(() => {
+    const seen = new Set<string>();
+    return (trending.data ?? []).filter((r) => {
+      const key = (r.title ?? "").trim().toLowerCase() || r.id;
+      if (seen.has(key) || seen.has(r.id)) return false;
+      seen.add(key);
+      seen.add(r.id);
+      return true;
+    });
+  }, [trending.data]);
+
   useEffect(() => {
     if (error) toast.error((error as Error).message);
   }, [error]);
@@ -71,8 +83,8 @@ const Index = () => {
       {/* Ingredient search panel */}
       <section ref={searchRef} className="relative px-5 sm:px-6 py-6 md:py-10 scroll-mt-24">
         <div className="max-w-3xl mx-auto rounded-3xl border border-border bg-card/80 backdrop-blur-xl p-5 sm:p-7 shadow-card">
-          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground mb-4">
-            <Sparkles className="h-4 w-4 text-primary" />
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-4">
+            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
             <span>Try it now — type what's in your kitchen</span>
           </div>
           <div className="flex flex-col items-center gap-4">
@@ -106,13 +118,12 @@ const Index = () => {
       <section className="py-10 px-6">
         <div className="max-w-6xl mx-auto">
           {enabled && (
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-foreground inline-flex items-center gap-2">
-                <Flame className="w-5 h-5 text-primary" />
-                {isLoading ? "Cooking up ideas…" : `${results?.length ?? 0} recipes`}
-              </h2>
-              <FilterBar value={filters} onChange={setFilters} />
-            </div>
+            <SectionHeading
+              icon={Flame}
+              align="left"
+              title={isLoading ? "Cooking up ideas…" : `${results?.length ?? 0} recipes`}
+              action={<FilterBar value={filters} onChange={setFilters} />}
+            />
           )}
 
           {!enabled ? (
@@ -138,24 +149,29 @@ const Index = () => {
       {/* Trending */}
       <section className="py-10 px-6 border-t border-border">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground inline-flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" /> {t("home.trendingNow")}
-            </h2>
-            <Link to="/explore" className="text-sm text-primary hover:underline">
-              {t("home.exploreAll")}
-            </Link>
-          </div>
+          <SectionHeading
+            icon={TrendingUp}
+            align="left"
+            title={t("home.trendingNow")}
+            action={
+              <Link
+                to="/explore"
+                className="text-sm font-medium text-primary hover:underline rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                {t("home.exploreAll")}
+              </Link>
+            }
+          />
 
           {trending.isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {Array.from({ length: 4 }).map((_, i) => <RecipeCardSkeleton key={i} />)}
             </div>
-          ) : (trending.data?.length ?? 0) === 0 ? (
+          ) : trendingUnique.length === 0 ? (
             <p className="text-muted-foreground">{t("home.noRecipesYet")}</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {trending.data!.slice(0, 8).map((r, i) => (
+              {trendingUnique.slice(0, 8).map((r, i) => (
                 <RecipeCard key={r.id} recipe={r} index={i} />
               ))}
             </div>
@@ -169,18 +185,15 @@ const Index = () => {
       {/* Final CTA */}
       <section className="px-5 sm:px-6 pb-16">
         <div className="max-w-4xl mx-auto rounded-3xl border border-border gradient-card p-8 md:p-12 text-center shadow-card">
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-balance">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-balance text-foreground">
             Start cooking smarter today
           </h2>
-          <p className="mt-2 text-muted-foreground text-balance">
-            Free forever. No credit card. Personalized in seconds.
+          <p className="mt-2 text-base text-muted-foreground text-balance">
+            Free to start. No credit card. Personalized in seconds.
           </p>
-          <Link
-            to="/auth"
-            className="inline-flex items-center justify-center mt-6 h-12 px-7 rounded-full gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-95 transition-opacity"
-          >
-            Start Free
-          </Link>
+          <Button asChild variant="hero" size="pill" className="mt-6">
+            <Link to="/auth">Create your free account</Link>
+          </Button>
         </div>
       </section>
       <Footer />
