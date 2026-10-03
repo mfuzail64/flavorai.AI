@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import logo from "@/assets/flavorai-logo.png";
 
-const Footer = () => (
+const Footer = () => {
+  const { t } = useTranslation();
+  return (
   <footer className="border-t border-border mt-20">
     <div className="max-w-6xl mx-auto px-5 py-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
       <Link to="/" className="flex items-center gap-2">
@@ -11,23 +14,24 @@ const Footer = () => (
         </span>
       </Link>
 
-      <nav aria-label="Legal" className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+      <nav aria-label={t("footer.legal")} className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
         <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
-          Privacy Policy
+          {t("footer.privacy")}
         </Link>
         <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
-          Terms &amp; Conditions
+          {t("footer.terms")}
         </Link>
         <Link to="/refund" className="text-muted-foreground hover:text-foreground transition-colors">
-          Refund Policy
+          {t("footer.refund")}
         </Link>
       </nav>
 
       <p className="text-xs text-muted-foreground">
-        Recipes and images are AI-generated. Check ingredients against your own dietary needs.
+        {t("footer.disclaimer")}
       </p>
     </div>
   </footer>
-);
+  );
+};
 
 export default Footer;
