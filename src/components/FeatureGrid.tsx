@@ -1,46 +1,49 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Clock, Leaf, Flame, ShoppingBasket, ArrowRight } from "lucide-react";
 
 const features = [
   {
     icon: Clock,
-    title: "Meal plan in 10 seconds",
-    desc: "Tell us your goal — get a 7-day plan with macros, prep time, and a grocery list.",
+    title: "features.f1t",
+    desc: "features.f1d",
     href: "/ai-generator",
     accent: "from-orange-500/20 to-amber-500/0",
   },
   {
     icon: Leaf,
-    title: "Indian · Keto · Vegetarian",
-    desc: "Plans tuned for your cuisine and diet. Authentic flavors, smarter portions.",
+    title: "features.f2t",
+    desc: "features.f2d",
     href: "/collections",
     accent: "from-emerald-500/20 to-emerald-500/0",
   },
   {
     icon: Flame,
-    title: "Weight-loss recipes",
-    desc: "High-protein, low-calorie meals that actually taste good. Track every macro.",
+    title: "features.f3t",
+    desc: "features.f3d",
     href: "/explore?collection=weight_loss",
     accent: "from-rose-500/20 to-rose-500/0",
   },
   {
     icon: ShoppingBasket,
-    title: "AI grocery planner",
-    desc: "Auto-built shopping lists from your weekly plan — never overbuy again.",
+    title: "features.f4t",
+    desc: "features.f4d",
     href: "/ai-generator",
     accent: "from-sky-500/20 to-sky-500/0",
   },
 ];
 
-const FeatureGrid = () => (
+const FeatureGrid = () => {
+  const { t } = useTranslation();
+  return (
   <section className="relative max-w-6xl mx-auto px-5 sm:px-6 py-14 md:py-20">
     <div className="text-center max-w-2xl mx-auto mb-10">
       <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-balance">
-        Everything you need to eat better
+        {t("features.title")}
       </h2>
       <p className="mt-3 text-muted-foreground text-balance">
-        From the ingredients in your fridge to a full week of meals — FlavorAI handles it all.
+        {t("features.subtitle")}
       </p>
     </div>
 
@@ -62,10 +65,10 @@ const FeatureGrid = () => (
               <div className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-primary/10 text-primary mb-4">
                 <Icon className="h-5 w-5" />
               </div>
-              <h3 className="font-semibold text-base mb-1.5">{title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+              <h3 className="font-semibold text-base mb-1.5">{t(title)}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{t(desc)}</p>
               <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                Explore <ArrowRight className="h-3 w-3" />
+                {t("features.explore")} <ArrowRight className="h-3 w-3 rtl:rotate-180" />
               </div>
             </div>
           </Link>
@@ -73,6 +76,7 @@ const FeatureGrid = () => (
       ))}
     </div>
   </section>
-);
+  );
+};
 
 export default FeatureGrid;

@@ -5,6 +5,7 @@ import logo from "@/assets/flavorai-logo.png";
 import { useAuth } from "@/contexts/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import HeaderLanguageSwitcher from "@/components/language/HeaderLanguageSwitcher";
 import ProfileMenu from "@/components/auth/ProfileMenu";
 import { Sparkles, Menu } from "lucide-react";
 
@@ -57,6 +58,7 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-2">
+          <HeaderLanguageSwitcher />
           {loading ? null : user ? (
             <ProfileMenu />
           ) : (
@@ -65,18 +67,18 @@ const Header = () => {
               size="sm"
               className="rounded-full gradient-primary text-primary-foreground hover:opacity-95 transition-opacity"
             >
-              <Link to="/auth">Start Free</Link>
+              <Link to="/auth">{t("header.startFree")}</Link>
             </Button>
           )}
 
           {/* Mobile menu */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label={t("header.openMenu")}>
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72 bg-background border-border">
+            <SheetContent side={document.documentElement.dir === "rtl" ? "left" : "right"} className="w-72 bg-background border-border">
               <div className="flex flex-col gap-1 mt-8">
                 {navItems.map((n) => (
                   <Link
@@ -102,7 +104,7 @@ const Header = () => {
                     className="mt-4 h-11 rounded-full gradient-primary text-primary-foreground"
                     onClick={() => setOpen(false)}
                   >
-                    <Link to="/auth">Start Free</Link>
+                    <Link to="/auth">{t("header.startFree")}</Link>
                   </Button>
                 )}
               </div>
