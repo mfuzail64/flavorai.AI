@@ -100,6 +100,14 @@ function buildPrompt(
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // Internal-only: callable solely by other backend functions using the service credential.
+  if ((req.headers.get("Authorization") ?? "") !== `Bearer ${SERVICE_ROLE}`) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const { recipe_id, prompt, title } = await req.json();
     if (!recipe_id) throw new Error("recipe_id required");

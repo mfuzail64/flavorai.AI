@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Recipe images are publicly readable" ON storage.objects;
