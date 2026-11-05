@@ -8,6 +8,13 @@
       "when": 1791728436613,
       "tag": "0000_drop_recipe_images_list_policy",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793882414511,
+      "tag": "0001_tighten_profile_and_recipe_visibility",
+      "breakpoints": true
     }
   ]
 }
